@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>404 — Page Not Found | Arctic Esports</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@700&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{ink:'#0A0A0F',steel:'#94A3B8',bolt:'#2563EB',cyan:'#22D3EE'},fontFamily:{display:['Rajdhani','sans-serif'],body:['Inter','sans-serif']}}}}</script>
+<style>body{font-family:'Inter',sans-serif}.font-display{font-family:'Rajdhani',sans-serif}</style>
+</head>
+<body class="bg-ink min-h-screen flex items-center justify-center px-4 text-center">
+  <div>
+    <p class="font-display font-bold text-7xl text-cyan">404</p>
+    <h1 class="font-display font-bold text-2xl text-white mt-2">This page went out of bounds.</h1>
+    <p class="text-steel mt-2">The page you're looking for doesn't exist or has moved.</p>
+    <a href="index.html" class="inline-block mt-6 bg-bolt text-white font-display font-semibold px-6 py-3 rounded-lg">Return Home</a>
+  </div>
+</body>
+</html>
