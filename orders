@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My Orders — Arctic Esports</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { ink:'#0A0A0F', frost:'#F5F7FA', steel:'#94A3B8', bolt:'#2563EB', cyan:'#22D3EE' },
+    fontFamily: { display:['Rajdhani','sans-serif'], body:['Inter','sans-serif'], mono:['"Space Mono"','monospace'] },
+  } } };
+</script>
+<style>
+  body { font-family:'Inter', sans-serif; }
+  .font-display { font-family:'Rajdhani', sans-serif; }
+  .chip { padding:.35rem .9rem; border-radius:9999px; font-size:.75rem; font-family:'Rajdhani',sans-serif; font-weight:600; }
+  .chip-active { background:#2563EB; color:#fff; }
+  .chip-inactive { background:#fff; color:#475569; border:1px solid #e2e8f0; }
+  .skeleton { background: linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 37%,#e2e8f0 63%); background-size:400% 100%; animation: sk 1.4s ease infinite; }
+  @keyframes sk { 0%{background-position:100% 50%} 100%{background-position:0 50%} }
+</style>
+</head>
+<body class="bg-frost text-ink min-h-screen">
+
+<header class="bg-black h-[70px] flex items-center sticky top-0 z-30">
+  <div class="max-w-4xl mx-auto w-full px-4 flex items-center justify-between">
+    <a href="index.html" class="text-white font-display font-bold text-lg">← ARCTIC <span class="text-cyan">ESPORTS</span></a>
+    <span class="text-steel text-sm font-display hidden sm:block">My Orders</span>
+  </div>
+</header>
+
+<section class="max-w-4xl mx-auto px-4 py-8">
+  <input id="searchInput" type="text" placeholder="Search by team name, tournament, slot, category, or payment ID…"
+    class="w-full border border-slate-200 focus:border-bolt outline-none rounded-lg px-4 py-3 mb-4 bg-white" />
+
+  <div class="flex flex-wrap gap-2 mb-6" id="filterBar">
+    <button data-filter="all" class="chip chip-active">All</button>
+    <button data-filter="daily-grind" class="chip chip-inactive">Daily Grind</button>
+    <button data-filter="weekly-war" class="chip chip-inactive">Weekly War</button>
+    <button data-filter="weekend-war" class="chip chip-inactive">Weekend War</button>
+    <button data-filter="tournament" class="chip chip-inactive">Tournament</button>
+    <span class="w-px bg-slate-300 mx-1"></span>
+    <button data-sort="newest" class="chip chip-active" data-role="sort">Newest</button>
+    <button data-sort="oldest" class="chip chip-inactive" data-role="sort">Oldest</button>
+  </div>
+
+  <div id="ordersList" class="space-y-4"></div>
+
+  <div id="emptyState" class="hidden text-center py-16">
+    <p class="font-display font-bold text-xl">No registrations found.</p>
+    <p class="text-steel text-sm mt-2">Ready to compete?</p>
+    <a href="daily-grind.html" class="inline-block mt-4 bg-bolt text-white font-display font-semibold px-6 py-3 rounded-lg">Book Scrims</a>
+  </div>
+</section>
+
+<script type="module">
+  import { collection, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { db } from "../src/firebase/firebase-config.js";
+  import { watchAuthState } from "../src/firebase/auth-service.js";
+
+  const listEl = document.getElementById('ordersList');
+  const emptyEl = document.getElementById('emptyState');
+  let allOrders = [];
+  let activeFilter = 'all';
+  let activeSort = 'newest';
+  let searchTerm = '';
+
+  listEl.innerHTML = Array(3).fill(0).map(() => `<div class="skeleton rounded-2xl h-28"></div>`).join('');
+
+  watchAuthState((user) => {
+    if (!user) { window.location.href = 'login.html'; return; }
+
+    const q = query(
+      collection(db, 'orders'),
+      where('uid', '==', user.uid),
+      orderBy('createdAt', 'desc')
+    );
+
+    // Realtime listener — the Orders page updates the instant a new
+    // registration lands, no manual refresh needed.
+    onSnapshot(q, (snap) => {
+      allOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      render();
+    }, () => { allOrders = []; render(); });
+  });
+
+  function render() {
+    let list = [...allOrders];
+    if (activeFilter !== 'all') list = list.filter(o => o.category === activeFilter);
+    if (searchTerm) {
+      const t = searchTerm.toLowerCase();
+      list = list.filter(o =>
+        (o.categoryLabel || '').toLowerCase().includes(t) ||
+        (o.slotLabel || '').toLowerCase().includes(t) ||
+        (o.paymentId || '').toLowerCase().includes(t) ||
+        (o.receiptNumber || '').toLowerCase().includes(t)
+      );
+    }
+    list.sort((a, b) => {
+      const at = a.createdAt?.toMillis?.() || 0;
+      const bt = b.createdAt?.toMillis?.() || 0;
+      return activeSort === 'newest' ? bt - at : at - bt;
+    });
+
+    if (!list.length) {
+      listEl.innerHTML = '';
+      emptyEl.classList.remove('hidden');
+      return;
+    }
+    emptyEl.classList.add('hidden');
+
+    listEl.innerHTML = list.map(o => `
+      <div class="bg-white rounded-2xl shadow-sm p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <p class="font-display font-bold text-lg">${o.categoryLabel || o.category}${o.slotLabel ? ' — ' + o.slotLabel : ''}</p>
+          <p class="text-steel text-xs mt-1 font-mono">Receipt ${o.receiptNumber || '—'} · Payment ${o.paymentId || '—'}</p>
+          <p class="text-steel text-xs mt-1">${o.createdAt?.toDate ? o.createdAt.toDate().toLocaleString() : ''}</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-sm font-mono font-semibold">₹${o.amount}</span>
+          <span class="text-xs font-display font-semibold px-3 py-1 rounded-full ${o.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${o.paymentStatus}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('searchInput').addEventListener('input', (e) => { searchTerm = e.target.value; render(); });
+
+  document.getElementById('filterBar').addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    if (btn.dataset.filter) {
+      document.querySelectorAll('[data-filter]').forEach(b => b.classList.replace('chip-active', 'chip-inactive'));
+      btn.classList.replace('chip-inactive', 'chip-active');
+      activeFilter = btn.dataset.filter;
+    }
+    if (btn.dataset.sort) {
+      document.querySelectorAll('[data-role="sort"]').forEach(b => b.classList.replace('chip-active', 'chip-inactive'));
+      btn.classList.replace('chip-inactive', 'chip-active');
+      activeSort = btn.dataset.sort;
+    }
+    render();
+  });
+</script>
+</body>
+</html>
