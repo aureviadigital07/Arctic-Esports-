@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Registration Successful — Arctic Esports</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { ink:'#0A0A0F', frost:'#F5F7FA', steel:'#94A3B8', bolt:'#2563EB', cyan:'#22D3EE' },
+    fontFamily: { display:['Rajdhani','sans-serif'], body:['Inter','sans-serif'] },
+  } } };
+</script>
+<style>
+  body { font-family:'Inter', sans-serif; }
+  .font-display { font-family:'Rajdhani', sans-serif; }
+  .glow-blue:hover { box-shadow: 0 0 20px rgba(37,99,235,.5); }
+  @keyframes pop { 0%{ transform: scale(.6); opacity:0 } 100%{ transform: scale(1); opacity:1 } }
+  .pop { animation: pop .4s cubic-bezier(.34,1.56,.64,1); }
+</style>
+</head>
+<body class="bg-frost text-ink min-h-screen flex items-center justify-center px-4">
+
+<div class="max-w-md w-full bg-white rounded-2xl shadow-sm p-8 text-center">
+  <div class="pop w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-5">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <h1 class="font-display font-bold text-2xl">Registration Successful</h1>
+  <p class="text-steel text-sm mt-2">Payment Verified · <span id="categoryLabel"></span></p>
+  <p class="text-steel text-sm">Team registered successfully. Receipt <span id="receiptNumber" class="font-mono"></span></p>
+
+  <a id="joinGroupBtn" href="#" target="_blank" rel="noopener"
+     class="glow-blue block mt-6 bg-[#25D366] text-white font-display font-bold py-3 rounded-lg transition-shadow">
+    JOIN WHATSAPP GROUP
+  </a>
+  <a href="orders.html" class="block mt-3 border border-slate-200 font-display font-semibold py-3 rounded-lg hover:bg-slate-50">
+    View My Orders
+  </a>
+  <a href="index.html" class="block mt-3 text-steel text-sm hover:text-ink">
+    Return Home
+  </a>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  document.getElementById('categoryLabel').textContent = params.get('category') || '';
+  document.getElementById('receiptNumber').textContent = params.get('receiptNumber') || '';
+  document.getElementById('joinGroupBtn').href = params.get('groupLink') || 'YOUR_WHATSAPP_GROUP_LINK';
+</script>
+</body>
+</html>
