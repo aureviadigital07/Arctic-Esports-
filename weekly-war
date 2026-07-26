@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Weekly War — Arctic Esports</title>
+<meta name="description" content="Book Weekly War — compete against the best BGMI teams every week. ₹150 entry." />
+<link rel="canonical" href="https://arcticesports.example/weekly-war.html" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { ink:'#0A0A0F', frost:'#F5F7FA', steel:'#94A3B8', bolt:'#2563EB', cyan:'#22D3EE' },
+    fontFamily: { display:['Rajdhani','sans-serif'], body:['Inter','sans-serif'], mono:['"Space Mono"','monospace'] },
+  } } };
+</script>
+<style>
+  body { font-family:'Inter', sans-serif; }
+  .font-display { font-family:'Rajdhani', sans-serif; }
+  .glow-blue:hover { box-shadow: 0 0 24px rgba(37,99,235,.5); }
+</style>
+</head>
+<body class="bg-frost text-ink">
+
+<header class="bg-black h-[70px] flex items-center sticky top-0 z-30">
+  <div class="max-w-5xl mx-auto w-full px-4 flex items-center justify-between">
+    <a href="index.html" class="text-white font-display font-bold text-lg">← ARCTIC <span class="text-cyan">ESPORTS</span></a>
+    <span class="text-steel text-sm font-display hidden sm:block">Weekly War</span>
+  </div>
+</header>
+
+<section class="relative h-64 md:h-80 bg-black overflow-hidden">
+  <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1200&q=80" loading="lazy" alt="Weekly War banner" class="w-full h-full object-cover opacity-60" />
+  <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
+  <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+    <h1 class="font-display font-bold text-4xl md:text-5xl text-white tracking-wide">WEEKLY WAR</h1>
+    <p class="text-steel mt-2">Compete against the best BGMI teams every week.</p>
+  </div>
+</section>
+
+<section class="max-w-md mx-auto px-4 py-12">
+  <div class="bg-white rounded-2xl shadow-sm p-6 text-center">
+    <p class="text-steel text-sm font-display tracking-wide">ENTRY FEE</p>
+    <p class="font-display font-bold text-4xl mt-1">₹150</p>
+    <button id="bookBtn" class="glow-blue w-full mt-6 bg-bolt text-white font-display font-bold py-3 rounded-lg transition-shadow">
+      BOOK WEEKLY WAR
+    </button>
+  </div>
+</section>
+
+<script type="module">
+  import { requireAuth } from "../src/firebase/auth-service.js";
+
+  const CATEGORY = 'weekly-war';
+  const CATEGORY_LABEL = 'Weekly War';
+  const FEE = 150;
+  const returnUrl = 'weekly-war.html';
+
+  document.getElementById('bookBtn').addEventListener('click', () => {
+    requireAuth(returnUrl, () => {
+      const params = new URLSearchParams({ category: CATEGORY, categoryLabel: CATEGORY_LABEL, fee: FEE });
+      window.location.href = `payment.html?${params.toString()}`;
+    });
+  });
+</script>
+</body>
+</html>
