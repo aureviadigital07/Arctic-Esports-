@@ -1,0 +1,77 @@
+// ==========================================================================
+// Arctic Esports — Payment Service
+// --------------------------------------------------------------------------
+// Purpose: isolate all payment-gateway logic behind one module so the
+// gateway (Razorpay today) can be swapped for Cashfree/PayU/PhonePe later
+// without touching any booking page.
+//
+// IMPORTANT — read before wiring this up:
+// Nothing in this file can mark a booking as "paid". It only:
+//   1. asks OUR backend to create an order (amount is decided server-side,
+//      never trusted from the URL/query string),
+//   2. opens the Razorpay Checkout popup with that order,
+//   3. sends whatever Razorpay hands back to OUR backend for verification.
+// The backend (see /functions/verify-payment.js) is the only thing that
+// can confirm a payment really happened — it checks Razorpay's signature
+// with the secret key, which never touches the browser. A green checkmark
+// in the browser is not proof of payment; only a verified backend response is.
+// ==========================================================================
+
+const BACKEND_BASE_URL = "YOUR_BACKEND_BASE_URL"; // e.g. https://us-central1-yourproject.cloudfunctions.net
+const RAZORPAY_KEY_ID = "YOUR_RAZORPAY_KEY_ID"; // public key only — safe for frontend
+
+/**
+ * Step 1: ask our backend to create a Razorpay order for this booking.
+ * The backend looks up the real price for `category`/`slot`/`tournamentId`
+ * itself — it does NOT trust the `amount` the frontend sends, so someone
+ * editing the page's JS or query string can't pay ₹1 for a ₹500 tournament.
+ */
+export async function createOrder({ category, slot, tournamentId, uid }) {
+  const res = await fetch(`${BACKEND_BASE_URL}/createOrder`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ category, slot, tournamentId, uid }),
+  });
+  if (!res.ok) throw new Error("Could not start payment. Please try again.");
+  return res.json(); // { orderId, amount, currency, keyId }
+}
+
+/**
+ * Step 2: open Razorpay Checkout using the order from step 1.
+ * Resolves with Razorpay's raw response — that response is NOT proof of
+ * payment by itself, it's just what gets forwarded to verifyPayment().
+ */
+export function openCheckout({ orderId, amount, currency, name, description, prefillEmail }) {
+  return new Promise((resolve, reject) => {
+    if (!window.Razorpay) return reject(new Error("Payment gateway failed to load."));
+    const rzp = new window.Razorpay({
+      key: RAZORPAY_KEY_ID,
+      order_id: orderId,
+      amount,
+      currency,
+      name: "Arctic Esports",
+      description,
+      prefill: { email: prefillEmail || "" },
+      theme: { color: "#2563EB" },
+      handler: (response) => resolve(response),
+      modal: { ondismiss: () => reject(new Error("Payment cancelled.")) },
+    });
+    rzp.on("payment.failed", (resp) => reject(new Error(resp.error?.description || "Payment failed.")));
+    rzp.open();
+  });
+}
+
+/**
+ * Step 3: send Razorpay's response to our backend for signature
+ * verification against the webhook secret. This is the ONLY step that is
+ * allowed to result in `paymentStatus: 'Paid'` anywhere in Firestore.
+ */
+export async function verifyPayment(razorpayResponse, bookingContext) {
+  const res = await fetch(`${BACKEND_BASE_URL}/verifyPayment`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...razorpayResponse, ...bookingContext }),
+  });
+  if (!res.ok) throw new Error("Payment could not be verified.");
+  return res.json(); // { verified: true, paymentId, registrationToken }
+}
