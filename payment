@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Payment — Arctic Esports</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { ink:'#0A0A0F', frost:'#F5F7FA', steel:'#94A3B8', bolt:'#2563EB', cyan:'#22D3EE' },
+    fontFamily: { display:['Rajdhani','sans-serif'], body:['Inter','sans-serif'], mono:['"Space Mono"','monospace'] },
+  } } };
+</script>
+<style>
+  body { font-family:'Inter', sans-serif; }
+  .font-display { font-family:'Rajdhani', sans-serif; }
+  .glow-blue:hover { box-shadow: 0 0 20px rgba(37,99,235,.5); }
+  .spinner { border: 3px solid #e2e8f0; border-top-color:#2563EB; border-radius:50%; width:20px; height:20px; animation: spin .7s linear infinite; display:inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body class="bg-frost text-ink min-h-screen">
+
+<header class="bg-black h-[70px] flex items-center sticky top-0 z-30">
+  <div class="max-w-md mx-auto w-full px-4 flex items-center justify-between">
+    <span class="text-white font-display font-bold text-lg">ARCTIC <span class="text-cyan">ESPORTS</span></span>
+    <span class="text-steel text-xs font-display">Secure Payment</span>
+  </div>
+</header>
+
+<!-- Gate: shown until we've confirmed the user is logged in -->
+<div id="authGate" class="max-w-md mx-auto px-4 py-20 text-center">
+  <div class="spinner mx-auto"></div>
+  <p class="text-steel text-sm mt-3">Checking your session…</p>
+</div>
+
+<section id="paymentSection" class="hidden max-w-md mx-auto px-4 py-10 space-y-5">
+
+  <!-- SUMMARY CARD -->
+  <div class="bg-white rounded-2xl shadow-sm p-6">
+    <p class="font-display font-bold text-lg mb-3">Payment Summary</p>
+    <dl class="text-sm space-y-2">
+      <div class="flex justify-between"><dt class="text-steel">Category</dt><dd id="sumCategory" class="font-medium"></dd></div>
+      <div id="sumSlotRow" class="flex justify-between hidden"><dt class="text-steel">Selected Slot</dt><dd id="sumSlot" class="font-medium"></dd></div>
+      <div class="flex justify-between"><dt class="text-steel">Entry Fee</dt><dd id="sumFee" class="font-mono font-semibold">₹0</dd></div>
+      <div class="flex justify-between"><dt class="text-steel">Status</dt><dd id="sumStatus" class="font-medium text-amber-600">Pending Payment</dd></div>
+    </dl>
+  </div>
+
+  <!-- TIMER -->
+  <div class="bg-black rounded-2xl p-6 text-center">
+    <p class="text-steel text-xs font-display tracking-widest">TIME REMAINING</p>
+    <p id="timer" class="font-mono font-bold text-4xl text-cyan mt-1">05:00</p>
+  </div>
+
+  <!-- QR + PAY -->
+  <div id="qrBlock" class="bg-white rounded-2xl shadow-sm p-6 text-center">
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=YOUR_QR_IMAGE_PLACEHOLDER" alt="Scan to pay QR placeholder" class="mx-auto rounded-lg w-48 h-48 object-contain" />
+    <div class="flex justify-center gap-4 text-steel text-xs mt-4">
+      <span>UPI</span><span>Debit Card</span><span>Credit Card</span><span>Net Banking</span><span>Wallet</span>
+    </div>
+    <p class="text-slate-400 text-xs mt-3">The QR code is a visual aid only — tap below to pay securely, your payment is verified automatically.</p>
+
+    <button id="payBtn" class="glow-blue w-full mt-5 bg-bolt text-white font-display font-bold py-3 rounded-lg transition-shadow flex items-center justify-center gap-2">
+      <span id="payBtnLabel">Pay Now</span>
+    </button>
+    <p id="payError" class="hidden text-red-600 text-sm mt-3"></p>
+  </div>
+
+  <!-- EXPIRED STATE -->
+  <div id="expiredBlock" class="hidden bg-white rounded-2xl shadow-sm p-6 text-center">
+    <p class="font-display font-bold text-xl text-red-600">Session Expired</p>
+    <p class="text-steel text-sm mt-2">Your 5-minute payment window ran out. No amount was charged.</p>
+    <button id="returnBtn" class="glow-blue w-full mt-5 bg-bolt text-white font-display font-bold py-3 rounded-lg transition-shadow">
+      Return to Slot Selection
+    </button>
+  </div>
+
+</section>
+
+<script type="module">
+  import { watchAuthState } from "../src/firebase/auth-service.js";
+  import { createOrder, openCheckout, verifyPayment } from "../src/services/payment-service.js";
+
+  const params = new URLSearchParams(window.location.search);
+  const category = params.get('category') || '';
+  const categoryLabel = params.get('categoryLabel') || category;
+  const slot = params.get('slot') || '';
+  const slotLabel = params.get('slotLabel') || '';
+  const fee = params.get('fee') || '0';
+  const tournamentId = params.get('tournamentId') || '';
+
+  document.getElementById('sumCategory').textContent = categoryLabel;
+  document.getElementById('sumFee').textContent = `₹${fee}`;
+  if (slotLabel) {
+    document.getElementById('sumSlotRow').classList.remove('hidden');
+    document.getElementById('sumSlot').textContent = slotLabel;
+  }
+
+  // ---- Route protection: no session, no payment page. Full stop. ----
+  let currentUser = null;
+  watchAuthState((user) => {
+    if (!user) {
+      sessionStorage.setItem('arctic_return_to', window.location.href);
+      window.location.href = 'login.html';
+      return;
+    }
+    currentUser = user;
+    document.getElementById('authGate').classList.add('hidden');
+    document.getElementById('paymentSection').classList.remove('hidden');
+    startTimer();
+  });
+
+  // ---- 5-minute countdown ----
+  let secondsLeft = 5 * 60;
+  let timerInterval;
+  function startTimer() {
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+      secondsLeft--;
+      updateTimerDisplay();
+      if (secondsLeft <= 0) expireSession();
+    }, 1000);
+  }
+  function updateTimerDisplay() {
+    const m = String(Math.max(0, Math.floor(secondsLeft / 60))).padStart(2, '0');
+    const s = String(Math.max(0, secondsLeft % 60)).padStart(2, '0');
+    document.getElementById('timer').textContent = `${m}:${s}`;
+  }
+  function expireSession() {
+    clearInterval(timerInterval);
+    document.getElementById('qrBlock').classList.add('hidden');
+    document.getElementById('expiredBlock').classList.remove('hidden');
+  }
+  document.getElementById('returnBtn').addEventListener('click', () => {
+    const back = { 'daily-grind': 'daily-grind.html', 'weekly-war': 'weekly-war.html', 'weekend-war': 'weekend-war.html' }[category] || 'upcoming-tournaments.html';
+    window.location.href = back;
+  });
+
+  // ---- Pay Now: create order -> Razorpay checkout -> backend verification ----
+  const payBtn = document.getElementById('payBtn');
+  const payBtnLabel = document.getElementById('payBtnLabel');
+  const payError = document.getElementById('payError');
+  let paying = false;
+
+  payBtn.addEventListener('click', async () => {
+    if (paying || secondsLeft <= 0) return;
+    paying = true;
+    payError.classList.add('hidden');
+    payBtn.disabled = true;
+    payBtnLabel.innerHTML = '<span class="spinner"></span>';
+
+    try {
+      const order = await createOrder({ category, slot, tournamentId, uid: currentUser.uid });
+
+      const razorpayResponse = await openCheckout({
+        orderId: order.orderId,
+        amount: order.amount,
+        currency: order.currency || 'INR',
+        description: `${categoryLabel}${slotLabel ? ' — ' + slotLabel : ''}`,
+        prefillEmail: currentUser.email,
+      });
+
+      const verified = await verifyPayment(razorpayResponse, {
+        category, slot, tournamentId, uid: currentUser.uid,
+      });
+
+      if (!verified.verified) throw new Error('Payment could not be verified. No registration was created.');
+
+      clearInterval(timerInterval);
+      document.getElementById('sumStatus').textContent = 'Paid';
+      document.getElementById('sumStatus').className = 'font-medium text-emerald-600';
+
+      // Only NOW — after a real verified response from our backend — do we
+      // move on. Tournament flow already has roster data; scrim/war flows
+      // still need the short team-name/mobile form.
+      const forward = new URLSearchParams({
+        category, categoryLabel, slot, slotLabel, fee,
+        tournamentId, paymentId: verified.paymentId,
+      });
+      window.location.href = `register.html?${forward.toString()}`;
+
+    } catch (err) {
+      payError.textContent = err.message || 'Something went wrong. Please try again.';
+      payError.classList.remove('hidden');
+      payBtn.disabled = false;
+      payBtnLabel.textContent = 'Pay Now';
+      paying = false;
+    }
+  });
+</script>
+</body>
+</html>
