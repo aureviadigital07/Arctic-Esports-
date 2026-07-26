@@ -1,0 +1,113 @@
+// ==========================================================================
+// Arctic Esports — Authentication Service
+// --------------------------------------------------------------------------
+// Purpose: one shared module for every page that needs to know "is someone
+// logged in?" or needs to send them to Login and bring them back.
+// Inputs: Firebase Auth instance (imported from firebase-config.js)
+// Outputs: helper functions used by page scripts (login.html, booking pages)
+// Dependencies: firebase-config.js, Firebase Auth SDK
+// ==========================================================================
+
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+  sendEmailVerification,
+  onAuthStateChanged,
+  signOut,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { auth, db } from "./firebase-config.js";
+
+const RETURN_TO_KEY = "arctic_return_to";
+
+/**
+ * Call this from any "Book Slot" / "Register" button BEFORE checking auth.
+ * Stores exactly where the user was trying to go so Login can send them
+ * straight back after a successful sign-in — no re-selecting a slot.
+ */
+export function rememberReturnTo(url) {
+  sessionStorage.setItem(RETURN_TO_KEY, url);
+}
+
+export function getReturnTo(fallback = "index.html") {
+  return sessionStorage.getItem(RETURN_TO_KEY) || fallback;
+}
+
+export function clearReturnTo() {
+  sessionStorage.removeItem(RETURN_TO_KEY);
+}
+
+/**
+ * Gate a booking action behind auth. If logged in, runs `onAuthed`
+ * immediately. If not, remembers `returnUrl` and redirects to Login —
+ * no partial access, no payment page reachable without a session.
+ */
+export function requireAuth(returnUrl, onAuthed) {
+  const user = auth.currentUser;
+  if (user) {
+    onAuthed(user);
+  } else {
+    rememberReturnTo(returnUrl);
+    window.location.href = "login.html";
+  }
+}
+
+async function upsertUserProfile(user, provider) {
+  const ref = doc(db, "users", user.uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      uid: user.uid,
+      name: user.displayName || "",
+      email: user.email || "",
+      photoURL: user.photoURL || "",
+      phone: user.phoneNumber || "",
+      provider,
+      createdAt: serverTimestamp(),
+      lastLogin: serverTimestamp(),
+    });
+  } else {
+    await setDoc(ref, { lastLogin: serverTimestamp() }, { merge: true });
+  }
+}
+
+export async function loginWithGoogle() {
+  const provider = new GoogleAuthProvider();
+  const result = await signInWithPopup(auth, provider);
+  await upsertUserProfile(result.user, "google");
+  return result.user;
+}
+
+export async function loginWithEmail(email, password) {
+  const result = await signInWithEmailAndPassword(auth, email, password);
+  await upsertUserProfile(result.user, "password");
+  return result.user;
+}
+
+export async function createAccount(email, password) {
+  const result = await createUserWithEmailAndPassword(auth, email, password);
+  await sendEmailVerification(result.user);
+  await upsertUserProfile(result.user, "password");
+  return result.user;
+}
+
+export function resetPassword(email) {
+  return sendPasswordResetEmail(auth, email);
+}
+
+export function logout() {
+  clearReturnTo();
+  return signOut(auth);
+}
+
+export function watchAuthState(callback) {
+  return onAuthStateChanged(auth, callback);
+}
