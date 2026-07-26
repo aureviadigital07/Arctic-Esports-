@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Daily Grind Scrims — Arctic Esports</title>
+<meta name="description" content="Book a Daily Grind BGMI scrim slot — six slots a day, ₹60 entry. Login, pick a slot, pay, and get your room details on WhatsApp." />
+<link rel="canonical" href="https://arcticesports.example/daily-grind.html" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { ink:'#0A0A0F', frost:'#F5F7FA', steel:'#94A3B8', bolt:'#2563EB', cyan:'#22D3EE' },
+    fontFamily: { display:['Rajdhani','sans-serif'], body:['Inter','sans-serif'], mono:['"Space Mono"','monospace'] },
+  } } };
+</script>
+<style>
+  body { font-family:'Inter', sans-serif; }
+  .font-display { font-family:'Rajdhani', sans-serif; }
+  .hud-frame { position: relative; }
+  .hud-frame > .hud-tr, .hud-frame > .hud-bl {
+    content:''; position:absolute; width:16px; height:16px; opacity:0;
+    transition: opacity .25s ease, width .25s ease, height .25s ease;
+  }
+  .hud-frame > .hud-tr { top:8px; right:8px; border-top:2px solid #22D3EE; border-right:2px solid #22D3EE; }
+  .hud-frame > .hud-bl { bottom:8px; left:8px; border-bottom:2px solid #22D3EE; border-left:2px solid #22D3EE; }
+  .hud-frame:hover > .hud-tr, .hud-frame:hover > .hud-bl { opacity:1; width:22px; height:22px; }
+  .glow-blue:hover { box-shadow: 0 0 20px rgba(37,99,235,.5); }
+  .skeleton { background: linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 37%,#e2e8f0 63%); background-size:400% 100%; animation: sk 1.4s ease infinite; }
+  @keyframes sk { 0%{background-position:100% 50%} 100%{background-position:0 50%} }
+</style>
+</head>
+<body class="bg-frost text-ink">
+
+<header class="bg-black h-[70px] flex items-center sticky top-0 z-30">
+  <div class="max-w-5xl mx-auto w-full px-4 flex items-center justify-between">
+    <a href="index.html" class="text-white font-display font-bold text-lg">← ARCTIC <span class="text-cyan">ESPORTS</span></a>
+    <span class="text-steel text-sm font-display hidden sm:block">Daily Grind Scrims</span>
+  </div>
+</header>
+
+<!-- BANNER -->
+<section class="relative h-64 md:h-80 bg-black overflow-hidden">
+  <img src="https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=1200&q=80" loading="lazy" alt="Daily Grind Scrims banner" class="w-full h-full object-cover opacity-60" />
+  <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
+  <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+    <h1 class="font-display font-bold text-4xl md:text-5xl text-white tracking-wide">SHOWDOWNS</h1>
+    <p class="text-steel mt-2">Book your preferred BGMI scrim slot below.</p>
+  </div>
+</section>
+
+<!-- SLOTS -->
+<section class="max-w-5xl mx-auto px-4 py-12">
+  <div id="slotsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    <!-- populated by JS from the `scrims` Firestore collection, falling back to defaults -->
+  </div>
+</section>
+
+<script type="module">
+  import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { db } from "../src/firebase/firebase-config.js";
+  import { requireAuth } from "../src/firebase/auth-service.js";
+
+  const CATEGORY = 'daily-grind';
+  const CATEGORY_LABEL = 'Daily Grind Scrims';
+  const DEFAULT_SLOTS = [
+    { id: '1pm-3pm', label: '1 PM - 3 PM', fee: 60 },
+    { id: '3pm-5pm', label: '3 PM - 5 PM', fee: 60 },
+    { id: '5pm-7pm', label: '5 PM - 7 PM', fee: 60 },
+    { id: '7pm-9pm', label: '7 PM - 9 PM', fee: 60 },
+    { id: '9pm-11pm', label: '9 PM - 11 PM', fee: 60 },
+    { id: '11pm-1am', label: '11 PM - 1 AM', fee: 60 },
+  ];
+
+  const grid = document.getElementById('slotsGrid');
+
+  function renderSkeleton() {
+    grid.innerHTML = Array(6).fill(0).map(() =>
+      `<div class="skeleton rounded-2xl h-32"></div>`
+    ).join('');
+  }
+
+  function renderSlots(slots) {
+    grid.innerHTML = slots.map(slot => `
+      <div class="hud-frame bg-white rounded-2xl shadow-sm border border-transparent hover:border-bolt transition-colors p-5 flex flex-col justify-between ${slot.isActive === false ? 'opacity-50' : ''}">
+        <span class="hud-tr"></span><span class="hud-bl"></span>
+        <div>
+          <p class="font-display font-bold text-xl">${slot.label}</p>
+          <p class="text-steel text-sm mt-1 font-mono">Entry ₹${slot.fee}</p>
+          ${slot.remaining !== undefined ? `<p class="text-xs text-cyan mt-1">${slot.remaining} slots left</p>` : ''}
+        </div>
+        <button data-slot="${slot.id}" data-label="${slot.label}" data-fee="${slot.fee}"
+          class="book-btn glow-blue mt-4 bg-bolt text-white font-display font-semibold py-2.5 rounded-lg transition-shadow disabled:opacity-40 disabled:cursor-not-allowed"
+          ${slot.isActive === false ? 'disabled' : ''}>
+          ${slot.isActive === false ? 'Closed' : 'Book Slot'}
+        </button>
+      </div>
+    `).join('');
+
+    document.querySelectorAll('.book-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const { slot, label, fee } = btn.dataset;
+        const returnUrl = `daily-grind.html?slot=${slot}`;
+        requireAuth(returnUrl, () => {
+          const params = new URLSearchParams({
+            category: CATEGORY,
+            categoryLabel: CATEGORY_LABEL,
+            slot, slotLabel: label, fee,
+          });
+          window.location.href = `payment.html?${params.toString()}`;
+        });
+      });
+    });
+  }
+
+  async function loadSlots() {
+    renderSkeleton();
+    try {
+      const snap = await getDocs(query(collection(db, 'scrims'), where('category', '==', CATEGORY)));
+      if (snap.empty) { renderSlots(DEFAULT_SLOTS); return; }
+      const slots = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderSlots(slots);
+    } catch (err) {
+      // Firestore not configured yet / offline — fall back to defaults so the page still works.
+      renderSlots(DEFAULT_SLOTS);
+    }
+  }
+
+  loadSlots();
+
+  // If we were bounced here mid-booking (?slot=...) after a login redirect,
+  // jump straight back into the payment flow instead of making the user pick again.
+  const urlSlot = new URLSearchParams(window.location.search).get('slot');
+  if (urlSlot) {
+    const match = DEFAULT_SLOTS.find(s => s.id === urlSlot);
+    if (match) {
+      const params = new URLSearchParams({ category: CATEGORY, categoryLabel: CATEGORY_LABEL, slot: match.id, slotLabel: match.label, fee: match.fee });
+      window.location.href = `payment.html?${params.toString()}`;
+    }
+  }
+</script>
+</body>
+</html>
