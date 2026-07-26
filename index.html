@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arctic Esports | Professional BGMI Scrims & Tournaments</title>
+    <meta name="description" content="Arctic Esports organizes fair BGMI scrims, tournaments and competitive events with smooth registration, trusted organizers and an active community.">
+    <meta name="keywords" content="BGMI scrims, esports tournaments, Arctic Esports, BGMI weekly war, daily grind scrims">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        arctic: {
+                            black: '#0a0a0a',
+                            dark: '#121212',
+                            card: '#1a1a1a',
+                            blue: '#0066ff',
+                            cyan: '#00e5ff',
+                            light: '#f5f5f5',
+                            gray: '#888888'
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'marquee': 'marquee 25s linear infinite',
+                        'float': 'float 3s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        marquee: {
+                            '0%': { transform: 'translateX(100%)' },
+                            '100%': { transform: 'translateX(-100%)' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Admin Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0a;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        h1, h2, h3, h4, .font-heading {
+            font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 0.05em;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #0066ff;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00e5ff;
+        }
+    </style>
+</head>
+<body class="bg-arctic-black text-white min-h-screen flex flex-col selection:bg-arctic-blue selection:text-white">
+
+    <!-- TOP AUTO SLIDING TICKER -->
+    <div class="bg-black text-white h-10 overflow-hidden relative flex items-center border-b border-neutral-800 z-50">
+        <div class="whitespace-nowrap animate-marquee flex space-x-12 text-sm font-semibold tracking-wider">
+            <span class="flex items-center"><i class="fa-solid fa-trophy text-arctic-cyan mr-2"></i> 🏆 Arctic Esports Daily BGMI Scrims Live</span>
+            <span class="flex items-center"><i class="fa-solid fa-fire text-orange-500 mr-2"></i> 🔥 Weekly War Registrations Open</span>
+            <span class="flex items-center"><i class="fa-solid fa-bolt text-yellow-400 mr-2"></i> ⚡ Weekend War Every Saturday</span>
+            <span class="flex items-center"><i class="fa-solid fa-gamepad text-arctic-blue mr-2"></i> 🎮 Join The Official Arctic Community</span>
+            <span class="flex items-center"><i class="fa-solid fa-shield-halved text-emerald-400 mr-2"></i> 💥 Fair Play • Real Competition • Fast Registration</span>
+        </div>
+    </div>
+
+    <!-- ANNOUNCEMENT BAR -->
+    <div class="bg-white text-black py-2 text-center font-bold tracking-widest text-xs uppercase animate-pulse shadow-md cursor-pointer" onclick="navigateTo('daily-grind')">
+        🔥 BOOK YOUR SLOTS FOR TODAY'S SCRIMS • CLICK TO VIEW SLOTS 🔥
+    </div>
+
+    <!-- HEADER -->
+    <header class="sticky top-0 bg-arctic-black/95 backdrop-blur-md h-[70px] border-b border-neutral-800 px-4 md:px-8 flex items-center justify-between z-40 transition-all duration-300 shadow-lg" id="mainHeader">
+        <div class="flex items-center space-x-4">
+            <!-- Search Icon -->
+            <button onclick="toggleSearchOverlay()" class="w-10 h-10 rounded-full bg-neutral-900 hover:bg-arctic-blue/20 flex items-center justify-center text-arctic-light hover:text-arctic-cyan transition-colors" title="Global Search">
+                <i class="fa-solid fa-magnifying-glass text-lg"></i>
+            </button>
+            <!-- Website Logo -->
+            <a href="#" onclick="navigateTo('home'); return false;" class="flex items-center space-x-2 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-arctic-blue to-arctic-cyan flex items-center justify-center text-white font-heading font-bold text-xl shadow-lg shadow-arctic-blue/30 group-hover:scale-105 transition-transform">
+                    AE
+                </div>
+                <div class="hidden sm:block">
+                    <span class="font-heading font-bold text-xl tracking-wider bg-gradient-to-r from-white via-arctic-light to-arctic-cyan bg-clip-text text-transparent">ARCTIC</span>
+                    <span class="font-heading text-xs text-arctic-blue block tracking-widest -mt-1">ESPORTS</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <!-- Profile Icon / Auth State -->
+            <div id="authHeaderContainer" class="relative">
+                <button onclick="handleProfileClick()" class="flex items-center space-x-2 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 px-3 py-2 rounded-xl text-sm transition-colors">
+                    <div class="w-7 h-7 rounded-full bg-arctic-blue/20 text-arctic-cyan flex items-center justify-center font-bold" id="userAvatarInitial">
+                        <i class="fa-solid fa-user text-xs"></i>
+                    </div>
+                    <span id="authButtonText" class="hidden md:inline font-medium text-arctic-light">Login</span>
+                </button>
+            </div>
+
+            <!-- Orders Icon -->
+            <button onclick="navigateTo('orders')" class="w-10 h-10 rounded-full bg-neutral-900 hover:bg-neutral-800 flex items-center justify-center text-arctic-light hover:text-arctic-cyan transition-colors relative" title="My Orders">
+                <i class="fa-solid fa-receipt text-lg"></i>
+                <span id="ordersBadge" class="absolute -top-1 -right-1 w-4 h-4 bg-arctic-blue text-[10px] rounded-full flex items-center justify-center font-bold hidden">0</span>
+            </button>
+
+            <!-- Admin Icon (Visible if admin) -->
+            <button id="adminNavBtn" onclick="navigateTo('admin')" class="hidden w-10 h-10 rounded-full bg-red-600/20 hover:bg-red-600/40 text-red-400 flex items-center justify-center transition-colors" title="Admin Dashboard">
+                <i class="fa-solid fa-shield-cat text-lg"></i>
+            </button>
+
+            <!-- Hamburger Menu -->
+            <button onclick="toggleSidebarMenu()" class="w-10 h-10 rounded-full bg-neutral-900 hover:bg-arctic-blue/20 flex items-center justify-center text-arctic-light hover:text-arctic-cyan transition-colors">
+                <i class="fa-solid fa-bars text-lg"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- SEARCH OVERLAY -->
+    <div id="searchOverlay" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-50 flex flex-col items-center pt-20 px-4 hidden transition-all duration-300">
+        <div class="w-full max-w-2xl relative">
+            <div class="relative flex items-center">
+                <i class="fa-solid fa-magnifying-glass absolute left-5 text-arctic-gray text-xl"></i>
+                <input type="text" id="globalSearchInput" oninput="handleGlobalSearch(this.value)" placeholder="Search Daily Grind, Weekly War, Tournaments..." class="w-full bg-neutral-900 border border-neutral-700 focus:border-arctic-cyan text-white pl-14 pr-12 py-4 rounded-2xl text-lg outline-none shadow-2xl transition-all">
+                <button onclick="toggleSearchOverlay()" class="absolute right-4 text-arctic-gray hover:text-white p-2">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <!-- Search Results Container -->
+            <div id="searchResultsContainer" class="mt-4 bg-neutral-900/90 border border-neutral-800 rounded-2xl max-h-[60vh] overflow-y-auto divide-y divide-neutral-800 hidden shadow-2xl">
+                <!-- Dynamic Results -->
+            </div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR SLIDE-OUT MENU -->
+    <div id="sidebarMenu" class="fixed inset-y-0 right-0 w-80 bg-arctic-dark border-l border-neutral-800 z-50 transform translate-x-full transition-transform duration-300 flex flex-col shadow-2xl">
+        <div class="p-6 border-b border-neutral-800 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-arctic-blue to-arctic-cyan flex items-center justify-center text-white font-heading font-bold text-lg">
+                    AE
+                </div>
+                <span class="font-heading font-bold text-xl tracking-wider">NAVIGATION</span>
+            </div>
+            <button onclick="toggleSidebarMenu()" class="w-8 h-8 rounded-full bg-neutral-800 hover:bg-neutral-700 flex items-center justify-center text-neutral-400 hover:text-white">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6 space-y-4">
+            <a href="#" onclick="navigateTo('home'); toggleSidebarMenu(); return false;" class="flex items-center space-x-4 p-3 rounded-xl hover:bg-neutral-800 text-neutral-300 hover:text-arctic-cyan transition-colors">
+                <i class="fa-solid fa-house w-6 text-arctic-blue"></i>
+                <span class="font-medium">Home</span>
+            </a>
+            <a href="#" onclick="navigateTo('daily-grind'); toggleSidebarMenu(); return false;" class="flex items-center space-x-4 p-3 rounded-xl hover:bg-neutral-800 text-neutral-300 hover:text-arctic-cyan transition-colors">
+                <i class="fa-solid fa-gamepad w-6 text-arctic-blue"></i>
+                <span class="font-medium">Book Scrims Slot</span>
+            </a>
+            <a href="#" onclick="navigateTo('weekly-war'); toggleSidebarMenu(); return false;" class="flex items-center space-x-4 p-3 rounded-xl hover:bg-neutral-800 text-neutral-300 hover:text-arctic-cyan transition-colors">
+                <i class="fa-solid fa-fire w-6 text-orange-500"></i>
+                <span class="font-medium">Weekly War</span>
+            </a>
+            <a href="#" onclick="navigateTo('weekend-war'); toggleSidebarMenu(); return false;" class="flex items-center space-x-4 p-3 rounded-xl hover:bg-neutral-800 text-neutral-300 hover:text-arctic-cyan transition-colors">
+                <i class="fa-solid fa-bolt w-6 text-yellow-400"></i>
+                <span class="font-medium">Weekend War</span>
+            </a>
+            <a href="#" onclick="navigateTo('upcoming-tournaments'); toggleSidebarMenu(); return false;" class="flex items-center space-x-4 p-3 rounded-xl hover:bg-neutral-800 text-neutral-300 hover:text-arctic-cyan transition-colors">
+                <i class="fa-solid fa-trophy w-6 text-emerald-400"></i>
+                <span class="font-medium">Upcoming Tournaments</span>
+            </a>
+            <a href="#" onclick="navigateTo('orders'); toggleSidebarMenu(); return false;" class="flex items-center space-x-4 p-3 rounded-xl hover:bg-neutral-800 text-neutral-300 hover:text-arctic-cyan transition-colors">
+                <i class="fa-solid fa-receipt w-6 text-arctic-cyan"></i>
+                <span class="font-medium">My Orders</span>
+            </a>
+            <a href="#" onclick="navigateTo('contact'); toggleSidebarMenu(); return false;" class="flex items-center space-x-4 p-3 rounded-xl hover:bg-neutral-800 text-neutral-300 hover:text-arctic-cyan transition-colors">
+                <i class="fa-solid fa-headset w-6 text-purple-400"></i>
+                <span class="font-medium">Contact Us</span>
+            </a>
+            <a href="#" onclick="navigateTo('about'); toggleSidebarMenu(); return false;" class="flex items-center space-x-4 p-3 rounded-xl hover:bg-neutral-800 text-neutral-300 hover:text-arctic-cyan transition-colors">
+                <i class="fa-solid fa-circle-info w-6 text-blue-400"></i>
+                <span class="font-medium">About Us</span>
+            </a>
+        </div>
+        <div class="p-6 border-t border-neutral-800 text-center text-xs text-neutral-500">
+            Arctic Esports Platform v2.5.0
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <main id="appContainer" class="flex-1 flex flex-col">
+        <!-- Dynamically Rendered Page Views injected here -->
+    </main>
+
+    <!-- FLOATING WHATSAPP BUTTON -->
+    <a href="https://wa.me/917385009275" target="_blank" class="fixed bottom-6 right-6 w-14 h-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center text-2xl shadow-2xl shadow-emerald-500/50 hover:scale-110 transition-all z-40 animate-bounce" title="Chat on WhatsApp">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <!-- FOOTER -->
+    <footer class="bg-black border-t border-neutral-900 pt-16 pb-12 text-neutral-400 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 md:px-8 grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+            <div class="space-y-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-arctic-blue to-arctic-cyan flex items-center justify-center text-white font-heading font-bold text-xl">
+                        AE
+                    </div>
+                    <span class="font-heading font-bold text-2xl tracking-wider text-white">ARCTIC ESPORTS</span>
+                </div>
+                <p class="text-sm leading-relaxed text-neutral-400">
+                    Professional BGMI Scrims & Tournament Platform. Fair play, instant slot booking, automated WhatsApp integrations, and real-time payment verification.
+                </p>
+                <div class="flex space-x-4 text-xl">
+                    <a href="#" class="w-10 h-10 rounded-xl bg-neutral-900 hover:bg-arctic-blue text-neutral-300 hover:text-white flex items-center justify-center transition-colors"><i class="fa-brands fa-discord"></i></a>
+                    <a href="#" class="w-10 h-10 rounded-xl bg-neutral-900 hover:bg-arctic-blue text-neutral-300 hover:text-white flex items-center justify-center transition-colors"><i class="fa-brands fa-youtube"></i></a>
+                    <a href="#" class="w-10 h-10 rounded-xl bg-neutral-900 hover:bg-arctic-blue text-neutral-300 hover:text-white flex items-center justify-center transition-colors"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" class="w-10 h-10 rounded-xl bg-neutral-900 hover:bg-arctic-blue text-neutral-300 hover:text-white flex items-center justify-center transition-colors"><i class="fa-brands fa-telegram"></i></a>
+                </div>
+            </div>
+            <div>
+                <h4 class="font-heading font-bold text-white text-lg tracking-wider mb-4 border-l-4 border-arctic-blue pl-3">QUICK LINKS</h4>
+                <ul class="space-y-2.5 text-sm">
+                    <li><a href="#" onclick="navigateTo('home'); return false;" class="hover:text-arctic-cyan transition-colors">Home</a></li>
+                    <li><a href="#" onclick="navigateTo('daily-grind'); return false;" class="hover:text-arctic-cyan transition-colors">Daily Grind Scrims</a></li>
+                    <li><a href="#" onclick="navigateTo('weekly-war'); return false;" class="hover:text-arctic-cyan transition-colors">Weekly War</a></li>
+                    <li><a href="#" onclick="navigateTo('weekend-war'); return false;" class="hover:text-arctic-cyan transition-colors">Weekend War</a></li>
+                    <li><a href="#" onclick="navigateTo('upcoming-tournaments'); return false;" class="hover:text-arctic-cyan transition-colors">Upcoming Tournaments</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-heading font-bold text-white text-lg tracking-wider mb-4 border-l-4 border-arctic-cyan pl-3">CONTACT INFO</h4>
+                <ul class="space-y-3 text-sm">
+                    <li class="flex items-center space-x-3">
+                        <i class="fa-solid fa-phone text-arctic-blue"></i>
+                        <span>+91 7385009275 / 9145214555</span>
+                    </li>
+                    <li class="flex items-center space-x-3">
+                        <i class="fa-solid fa-envelope text-arctic-blue"></i>
+                        <span>support@arcticesports.com</span>
+                    </li>
+                    <li class="flex items-center space-x-3">
+                        <i class="fa-solid fa-location-dot text-arctic-blue"></i>
+                        <span>Chhatrapati Sambhajinagar, MH, India</span>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-heading font-bold text-white text-lg tracking-wider mb-4 border-l-4 border-emerald-500 pl-3">SECURE PAYMENTS</h4>
+                <p class="text-xs text-neutral-400 mb-4">All transactions are secured via advanced payment gateway encryption with automated webhook verification.</p>
+                <div class="flex flex-wrap gap-2 text-2xl text-neutral-300">
+                    <span class="px-3 py-1.5 bg-neutral-900 rounded-lg text-xs font-bold border border-neutral-800 text-arctic-cyan">UPI</span>
+                    <span class="px-3 py-1.5 bg-neutral-900 rounded-lg text-xs font-bold border border-neutral-800 text-arctic-blue">GPay</span>
+                    <span class="px-3 py-1.5 bg-neutral-900 rounded-lg text-xs font-bold border border-neutral-800 text-purple-400">PhonePe</span>
+                    <span class="px-3 py-1.5 bg-neutral-900 rounded-lg text-xs font-bold border border-neutral-800 text-yellow-400">Paytm</span>
+                    <span class="px-3 py-1.5 bg-neutral-900 rounded-lg text-xs font-bold border border-neutral-800 text-emerald-400">Cards</span>
+                </div>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 md:px-8 border-t border-neutral-900 pt-8 flex flex-col md:flex-row items-center justify-between text-xs text-neutral-500">
+            <p>&copy; 2026 Arctic Esports. All rights reserved. Built for professional esports athletes.</p>
+            <div class="flex space-x-6 mt-4 md:mt-0">
+                <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
+                <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
+                <a href="#" class="hover:text-white transition-colors">Refund Policy</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT APP CORE & FIREBASE ARCHITECTURE -->
+    <script type="module">
+        // Import Firebase SDKs (Modular)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, EmailAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, where, onSnapshot, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Configuration & Placeholders
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'arctic-esports-production-v1';
+        let firebaseConfig = {};
+        try {
+            firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+                apiKey: "YOUR_FIREBASE_API_KEY",
+                authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
+                projectId: "YOUR_FIREBASE_PROJECT_ID",
+                storageBucket: "YOUR_FIREBASE_STORAGE_BUCKET",
+                messagingSenderId: "YOUR_FIREBASE_MESSAGING_SENDER_ID",
+                appId: "YOUR_FIREBASE_APP_ID",
+                measurementId: "YOUR_FIREBASE_MEASUREMENT_ID"
+            };
+        } catch(e) {
+            firebaseConfig = { apiKey: "mock", projectId: "mock" };
+        }
+
+        // Initialize Firebase
+        let app, auth, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        } catch(e) {
+            console.warn("Firebase initialization warning (using local fallback state):", e);
+        }
+
+        // App State
+        window.AppState = {
+            currentUser: null,
+            isAdmin: false,
+            currentRoute: 'home',
+            selectedSlotData: null,
+            orders: [],
+            registrations: [],
+            whatsappLinks: {
+                daily_grind: "https://chat.whatsapp.com/YOUR_DAILY_GROUP_LINK",
+                weekly_war: "https://chat.whatsapp.com/YOUR_WEEKLY_GROUP_LINK",
+                weekend_war: "https://chat.whatsapp.com/YOUR_WEEKEND_GROUP_LINK",
+                tournament: "https://chat.whatsapp.com/YOUR_TOURNAMENT_GROUP_LINK"
+            },
+            tournaments: [
+                { id: 't1', title: 'Arctic Pro Championship Season 4', date: '2026-03-15', entryFee: 250, prizePool: '₹25,000', poster: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80', description: 'The biggest BGMI tournament of the season with elite squads competing for glory.' },
+                { id: 't2', title: 'Underdog Clash Series #12', date: '2026-03-22', entryFee: 100, prizePool: '₹10,000', poster: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80', description: 'Designed specifically for rising underdog teams to showcase their skills.' },
+                { id: 't3', title: 'Sanhok Showdown Offline Qualifier', date: '2026-03-29', entryFee: 150, prizePool: '₹15,000', poster: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=800&q=80', description: 'Intense Sanhok action in this exclusive weekend qualifier tournament.' },
+                { id: 't4', title: 'Erangel Elite Invitational', date: '2026-04-05', entryFee: 300, prizePool: '₹40,000', poster: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80', description: 'Invited pro teams and top slot winners battle in the ultimate Erangel test.' },
+                { id: 't5', title: 'Arctic Weekend Rumble #8', date: '2026-04-12', entryFee: 120, prizePool: '₹12,000', poster: 'https://images.unsplash.com/photo-1511193311914-0346f16efe90?auto=format&fit=crop&w=800&q=80', description: 'Fast-paced weekend rumble with instant room ID & password generation.' }
+            ],
+            faqs: [
+                { q: "How do I book a BGMI scrim slot?", a: "Login, choose a slot, complete payment and join the WhatsApp group." },
+                { q: "Can I cancel my booking?", a: "Bookings are generally non-refundable unless the organizer announces otherwise." },
+                { q: "How will I receive the room details?", a: "Room details will be shared in the official WhatsApp group before the match." },
+                { q: "What happens after successful payment?", a: "Your registration is confirmed automatically and you'll receive access to the match group." }
+            ]
+        };
+
+        // Initialize Authentication & State Listeners
+        window.addEventListener('DOMContentLoaded', () => {
+            initAuthListener();
+            navigateTo(window.location.hash ? window.location.hash.substring(1) : 'home');
+            setupGlobalSearch();
+        });
+
+        function initAuthListener() {
+            if (!auth) {
+                // Mock Auth for offline/demo preview
+                updateAuthUI(null);
+                return;
+            }
+            
+            // Handle Custom Auth Token or Anonymous Auth
+            const initAuthFlow = async () => {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else if (!auth.currentUser) {
+                        await signInAnonymously(auth);
+                    }
+                } catch(err) {
+                    console.error("Auth init error:", err);
+                }
+            };
+            initAuthFlow();
+
+            onAuthStateChanged(auth, (user) => {
+                AppState.currentUser = user;
+                if (user) {
+                    // Check Admin status (Mock email check or Firestore check)
+                    AppState.isAdmin = user.email === 'admin@arcticesports.com' || user.uid === 'ADMIN_UID_PLACEHOLDER';
+                    fetchUserData(user.uid);
+                } else {
+                    AppState.isAdmin = false;
+                }
+                updateAuthUI(user);
+                toggleAdminNav(AppState.isAdmin);
+            });
+        }
+
+        async function fetchUserData(uid) {
+            if (!db) return;
+            try {
+                const userDoc = await getDoc(doc(db, 'artifacts', appId, 'users', uid));
+                if (!userDoc.exists()) {
+                    await setDoc(doc(db, 'artifacts', appId, 'users', uid), {
+                        uid: uid,
+                        name: auth.currentUser.displayName || 'Esports Gamer',
+                        email: auth.currentUser.email || 'gamer@arcticesports.com',
+                        createdAt: new Date().toISOString()
+                    });
+                }
+            } catch(e) {
+                console.error("Error fetching user data:", e);
+            }
+        }
+
+        function updateAuthUI(user) {
+            const btnText = document.getElementById('authButtonText');
+            const avatar = document.getElementById('userAvatarInitial');
+            if (user) {
+                btnText.innerText = user.displayName || user.email ? (user.email.split('@')[0]) : 'Profile';
+                avatar.innerHTML = `<img src="${user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'}" class="w-full h-full rounded-full object-cover">`;
+            } else {
+                btnText.innerText = 'Login';
+                avatar.innerHTML = `<i class="fa-solid fa-user text-xs"></i>`;
+            }
+        }
+
+        function toggleAdminNav(isAdmin) {
+            const adminBtn = document.getElementById('adminNavBtn');
+            if (isAdmin) {
+                adminBtn.classList.remove('hidden');
+            } else {
+                adminBtn.classList.add('hidden');
+            }
+        }
+
+        // Global Navigation Router
+        window.navigateTo = function(route) {
+            AppState.currentRoute = route;
+            window.location.hash = route;
+            window.scrollTo(0, 0);
+            renderPage(route);
+        }
+
+        function renderPage(route) {
+            const container = document.getElementById('appContainer');
+            container.innerHTML = '';
+
+            switch(route) {
+                case 'home':
+                    container.innerHTML = renderHomePage();
+                    break;
+                case 'daily-grind':
+                    container.innerHTML = renderDailyGrindPage();
+                    break;
+                case 'weekly-war':
+                    container.innerHTML = renderWeeklyWarPage();
+                    break;
+                case 'weekend-war':
+                    container.innerHTML = renderWeekendWarPage();
+                    break;
+                case 'upcoming-tournaments':
+                    container.innerHTML = renderTournamentsPage();
+                    break;
+                case 'tournament-registration':
+                    container.innerHTML = renderTournamentRegPage();
+                    break;
+                case 'payment':
+                    container.innerHTML = renderPaymentPage();
+                    break;
+                case 'registration-form':
+                    container.innerHTML = renderRegistrationFormPage();
+                    break;
+                case 'success':
+                    container.innerHTML = renderSuccessPage();
+                    break;
+                case 'orders':
+                    container.innerHTML = renderOrdersPage();
+                    break;
+                case 'profile':
+                    container.innerHTML = renderProfilePage();
+                    break;
+                case 'login':
+                    container.innerHTML = renderLoginPage();
+                    break;
+                case 'contact':
+                    container.innerHTML = renderContactPage();
+                    break;
+                case 'about':
+                    container.innerHTML = renderAboutPage();
+                    break;
+                case 'admin':
+                    if (!AppState.currentUser) {
+                        navigateTo('login');
+                        return;
+                    }
+                    container.innerHTML = renderAdminPage();
+                    initAdminCharts();
+                    break;
+                default:
+                    container.innerHTML = renderHomePage();
+            }
+        }
+
+        // ----------------- PAGE VIEWS BUILDERS -----------------
+
+        function renderHomePage() {
+            return `
+                <!-- HERO SECTION -->
+                <section class="relative py-20 px-4 md:px-8 bg-neutral-950 flex items-center justify-center border-b border-neutral-900">
+                    <div class="absolute inset-0 z-0 opacity-40">
+                        <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=80" alt="Esports Hero" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-arctic-black via-arctic-black/80 to-transparent"></div>
+                    </div>
+                    <div class="relative z-10 max-w-4xl mx-auto text-center space-y-6">
+                        <div class="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-arctic-blue/10 border border-arctic-blue/30 text-arctic-cyan text-xs font-bold uppercase tracking-widest animate-pulse">
+                            <i class="fa-solid fa-fire mr-1"></i> India's Premier BGMI Esports Platform
+                        </div>
+                        <h1 class="font-heading font-extrabold text-5xl md:text-7xl tracking-wider text-white uppercase drop-shadow-2xl">
+                            Compete Like A <span class="bg-gradient-to-r from-arctic-blue to-arctic-cyan bg-clip-text text-transparent">Champion</span>
+                        </h1>
+                        <p class="text-neutral-300 text-lg md:text-xl max-w-2xl mx-auto">
+                            Daily BGMI Scrims • Weekly War • Weekend War • Professional Tournaments with automated room ID & WhatsApp integration.
+                        </p>
+                        <div class="pt-4">
+                            <button onclick="navigateTo('daily-grind')" class="px-8 py-4 bg-arctic-blue hover:bg-blue-600 text-white font-heading font-bold text-lg rounded-2xl shadow-xl shadow-arctic-blue/40 hover:scale-105 transition-all">
+                                BOOK SCRIMS SLOT NOW <i class="fa-solid fa-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- CATEGORIES CARDS SECTION -->
+                <section class="py-20 px-4 md:px-8 max-w-7xl mx-auto w-full">
+                    <div class="text-center mb-16 space-y-3">
+                        <h2 class="font-heading font-bold text-3xl md:text-4xl text-white tracking-wider uppercase">COMPETITIVE CATEGORIES</h2>
+                        <p class="text-neutral-400">Choose your battleground and register instantly.</p>
+                        <div class="w-24 h-1 bg-arctic-blue mx-auto rounded-full"></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        <!-- Card 1: Daily Grind -->
+                        <div onclick="navigateTo('daily-grind')" class="bg-arctic-card border border-neutral-800 hover:border-arctic-blue rounded-3xl p-6 cursor-pointer group hover:-translate-y-2 transition-all duration-300 shadow-xl flex flex-col justify-between">
+                            <div>
+                                <div class="h-48 rounded-2xl overflow-hidden mb-6 relative">
+                                    <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80" alt="Daily Grind" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-arctic-card to-transparent"></div>
+                                    <span class="absolute top-3 right-3 px-3 py-1 bg-arctic-blue text-white text-xs font-bold rounded-full">ENTRY ₹60</span>
+                                </div>
+                                <h3 class="font-heading font-bold text-2xl text-white group-hover:text-arctic-cyan transition-colors mb-2">Daily Grind Scrims</h3>
+                                <p class="text-neutral-400 text-sm leading-relaxed mb-6">Daily practice scrims across multiple time slots from 1 PM to 1 AM.</p>
+                            </div>
+                            <button class="w-full py-3 bg-neutral-900 hover:bg-arctic-blue text-arctic-light font-semibold rounded-xl transition-colors flex items-center justify-center space-x-2">
+                                <span>Book Now</span>
+                                <i class="fa-solid fa-arrow-right text-xs"></i>
+                            </button>
+                        </div>
+                        <!-- Card 2: Weekly War -->
+                        <div onclick="navigateTo('weekly-war')" class="bg-arctic-card border border-neutral-800 hover:border-arctic-blue rounded-3xl p-6 cursor-pointer group hover:-translate-y-2 transition-all duration-300 shadow-xl flex flex-col justify-between">
+                            <div>
+                                <div class="h-48 rounded-2xl overflow-hidden mb-6 relative">
+                                    <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80" alt="Weekly War" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-arctic-card to-transparent"></div>
+                                    <span class="absolute top-3 right-3 px-3 py-1 bg-orange-600 text-white text-xs font-bold rounded-full">ENTRY ₹150</span>
+                                </div>
+                                <h3 class="font-heading font-bold text-2xl text-white group-hover:text-arctic-cyan transition-colors mb-2">Weekly War</h3>
+                                <p class="text-neutral-400 text-sm leading-relaxed mb-6">Compete against top tier squads every week for massive prize pools.</p>
+                            </div>
+                            <button class="w-full py-3 bg-neutral-900 hover:bg-arctic-blue text-arctic-light font-semibold rounded-xl transition-colors flex items-center justify-center space-x-2">
+                                <span>Book Now</span>
+                                <i class="fa-solid fa-arrow-right text-xs"></i>
+                            </button>
+                        </div>
+                        <!-- Card 3: Weekend War -->
+                        <div onclick="navigateTo('weekend-war')" class="bg-arctic-card border border-neutral-800 hover:border-arctic-blue rounded-3xl p-6 cursor-pointer group hover:-translate-y-2 transition-all duration-300 shadow-xl flex flex-col justify-between">
+                            <div>
+                                <div class="h-48 rounded-2xl overflow-hidden mb-6 relative">
+                                    <img src="https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=600&q=80" alt="Weekend War" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-arctic-card to-transparent"></div>
+                                    <span class="absolute top-3 right-3 px-3 py-1 bg-yellow-500 text-black text-xs font-bold rounded-full">ENTRY ₹150</span>
+                                </div>
+                                <h3 class="font-heading font-bold text-2xl text-white group-hover:text-arctic-cyan transition-colors mb-2">Weekend War</h3>
+                                <p class="text-neutral-400 text-sm leading-relaxed mb-6">Intense weekend competitive BGMI battles with professional broadcast.</p>
+                            </div>
+                            <button class="w-full py-3 bg-neutral-900 hover:bg-arctic-blue text-arctic-light font-semibold rounded-xl transition-colors flex items-center justify-center space-x-2">
+                                <span>Book Now</span>
+                                <i class="fa-solid fa-arrow-right text-xs"></i>
+                            </button>
+                        </div>
+                        <!-- Card 4: Upcoming Tournaments -->
+                        <div onclick="navigateTo('upcoming-tournaments')" class="bg-arctic-card border border-neutral-800 hover:border-arctic-blue rounded-3xl p-6 cursor-pointer group hover:-translate-y-2 transition-all duration-300 shadow-xl flex flex-col justify-between">
+                            <div>
+                                <div class="h-48 rounded-2xl overflow-hidden mb-6 relative">
+                                    <img src="https://images.unsplash.com/photo-1511193311914-0346f16efe90?auto=format&fit=crop&w=600&q=80" alt="Tournaments" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-arctic-card to-transparent"></div>
+                                    <span class="absolute top-3 right-3 px-3 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full">PRIZE POOL</span>
+                                </div>
+                                <h3 class="font-heading font-bold text-2xl text-white group-hover:text-arctic-cyan transition-colors mb-2">Upcoming Tournaments</h3>
+                                <p class="text-neutral-400 text-sm leading-relaxed mb-6">Major championships with grand prize pools and verified slot allocations.</p>
+                            </div>
+                            <button class="w-full py-3 bg-neutral-900 hover:bg-arctic-blue text-arctic-light font-semibold rounded-xl transition-colors flex items-center justify-center space-x-2">
+                                <span>View All</span>
+                                <i class="fa-solid fa-arrow-right text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- WHATSAPP COMMUNITY SECTION -->
+                <section class="py-16 px-4 md:px-8 max-w-5xl mx-auto w-full">
+                    <div class="bg-gradient-to-r from-emerald-950/40 via-neutral-900 to-emerald-950/40 border border-emerald-500/30 rounded-3xl p-8 md:p-12 text-center relative overflow-hidden shadow-2xl">
+                        <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl text-emerald-500">
+                            <i class="fa-brands fa-whatsapp"></i>
+                        </div>
+                        <div class="relative z-10 max-w-2xl mx-auto space-y-6">
+                            <div class="w-16 h-16 rounded-2xl bg-emerald-500/20 text-emerald-400 text-3xl flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </div>
+                            <h2 class="font-heading font-bold text-3xl md:text-4xl text-white">Join Our WhatsApp Community</h2>
+                            <p class="text-neutral-300 text-sm md:text-base leading-relaxed">
+                                Stay updated with daily scrims, tournaments, room ID passwords, announcements and exclusive esports events.
+                            </p>
+                            <div>
+                                <a href="https://wa.me/917385009275" target="_blank" class="inline-flex items-center space-x-3 px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-heading font-bold text-lg rounded-2xl shadow-xl shadow-emerald-600/40 hover:scale-105 transition-all">
+                                    <i class="fa-brands fa-whatsapp text-xl"></i>
+                                    <span>JOIN COMMUNITY NOW</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- FAQ SECTION -->
+                <section class="py-20 px-4 md:px-8 max-w-4xl mx-auto w-full">
+                    <div class="text-center mb-16 space-y-3">
+                        <h2 class="font-heading font-bold text-3xl md:text-4xl text-white tracking-wider uppercase">FREQUENTLY ASKED QUESTIONS</h2>
+                        <p class="text-neutral-400">Everything you need to know about booking and matches.</p>
+                        <div class="w-24 h-1 bg-arctic-blue mx-auto rounded-full"></div>
+                    </div>
+                    <div class="space-y-4">
+                        ${AppState.faqs.map((faq, index) => `
+                            <div class="bg-arctic-card border border-neutral-800 rounded-2xl overflow-hidden transition-all duration-300">
+                                <button onclick="toggleFaq(${index})" class="w-full px-6 py-5 text-left flex items-center justify-between font-heading font-bold text-lg text-white hover:text-arctic-cyan transition-colors">
+                                    <span>${faq.q}</span>
+                                    <i id="faqIcon_${index}" class="fa-solid fa-chevron-down text-sm transition-transform duration-300"></i>
+                                </button>
+                                <div id="faqAns_${index}" class="hidden px-6 pb-6 text-neutral-400 text-sm leading-relaxed border-t border-neutral-800/50 pt-4">
+                                    ${faq.a}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </section>
+            `;
+        }
+
+        // Accordion toggle helper
+        window.toggleFaq = function(index) {
+            const ans = document.getElementById(`faqAns_${index}`);
+            const icon = document.getElementById(`faqIcon_${index}`);
+            if (ans.classList.contains('hidden')) {
+                ans.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+            } else {
+                ans.classList.add('hidden');
+                icon.classList.remove('rotate-180');
+            }
+        }
+
+        function renderDailyGrindPage() {
+            const slots = [
+                { time: '1 PM - 3 PM', fee: 60, status: 'Open' },
+                { time: '3 PM - 5 PM', fee: 60, status: 'Open' },
+                { time: '5 PM - 7 PM', fee: 60, status: 'Open' },
+                { time: '7 PM - 9 PM', fee: 60, status: 'Open' },
+                { time: '9 PM - 11 PM', fee: 60, status: 'Open' },
+                { time: '11 PM - 1 AM', fee: 60, status: 'Open' }
+            ];
+
+            return `
+                <div class="relative py-16 px-4 md:px-8 bg-neutral-950 border-b border-neutral-900 text-center">
+                    <div class="absolute inset-0 z-0 opacity-30">
+                        <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=80" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-arctic-black via-arctic-black/80 to-transparent"></div>
+                    </div>
+                    <div class="relative z-10 max-w-3xl mx-auto space-y-4">
+                        <span class="px-4 py-1.5 rounded-full bg-arctic-blue/20 text-arctic-cyan text-xs font-bold uppercase tracking-widest border border-arctic-blue/30">DAILY GRIND SCRIMS</span>
+                        <h1 class="font-heading font-extrabold text-4xl md:text-6xl text-white tracking-wider uppercase">SHOWDOWNS</h1>
+                        <p class="text-neutral-400 text-base md:text-lg">Book your preferred BGMI scrim slot below.</p>
+                    </div>
+                </div>
+
+                <div class="py-16 px-4 md:px-8 max-w-4xl mx-auto w-full">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        ${slots.map(slot => `
+                            <div class="bg-arctic-card border border-neutral-800 hover:border-arctic-blue rounded-3xl p-6 shadow-xl flex items-center justify-between transition-all duration-300">
+                                <div>
+                                    <span class="text-xs font-bold text-arctic-cyan uppercase tracking-widest block mb-1">Time Slot</span>
+                                    <h3 class="font-heading font-bold text-2xl text-white">${slot.time}</h3>
+                                    <span class="text-sm font-semibold text-emerald-400 mt-2 inline-block">Entry Fee: ₹${slot.fee}</span>
+                                </div>
+                                <button onclick="handleSlotBooking('Daily Grind Scrims', '${slot.time}', ${slot.fee})" class="px-6 py-3.5 bg-arctic-blue hover:bg-blue-600 text-white font-heading font-bold rounded-2xl shadow-lg shadow-arctic-blue/30 hover:scale-105 transition-all">
+                                    BOOK SLOT
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        window.handleSlotBooking = function(category, slot, fee) {
+            AppState.selectedSlotData = { category, slot, fee };
+            if (!AppState.currentUser) {
+                // Save target route
+                sessionStorage.setItem('redirectAfterLogin', 'payment');
+                navigateTo('login');
+                return;
+            }
+            navigateTo('payment');
+        }
+
+        function renderWeeklyWarPage() {
+            return `
+                <div class="relative py-16 px-4 md:px-8 bg-neutral-950 border-b border-neutral-900 text-center">
+                    <div class="absolute inset-0 z-0 opacity-30">
+                        <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=80" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-arctic-black via-arctic-black/80 to-transparent"></div>
+                    </div>
+                    <div class="relative z-10 max-w-3xl mx-auto space-y-4">
+                        <span class="px-4 py-1.5 rounded-full bg-orange-600/20 text-orange-400 text-xs font-bold uppercase tracking-widest border border-orange-600/30">WEEKLY CHAMPIONSHIP</span>
+                        <h1 class="font-heading font-extrabold text-4xl md:text-6xl text-white tracking-wider uppercase">WEEKLY WAR</h1>
+                        <p class="text-neutral-400 text-base md:text-lg">Compete against the best BGMI teams every week.</p>
+                    </div>
+                </div>
+
+                <div class="py-16 px-4 md:px-8 max-w-2xl mx-auto w-full">
+                    <div class="bg-arctic-card border border-neutral-800 hover:border-orange-500 rounded-3xl p-8 shadow-2xl text-center space-y-6">
+                        <div class="h-64 rounded-2xl overflow-hidden relative">
+                            <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-arctic-card to-transparent"></div>
+                            <span class="absolute top-4 right-4 px-4 py-2 bg-orange-600 text-white font-heading font-bold rounded-xl text-lg shadow-xl">ENTRY ₹150</span>
+                        </div>
+                        <h3 class="font-heading font-bold text-3xl text-white">Arctic Weekly War #42</h3>
+                        <p class="text-neutral-400 text-sm leading-relaxed">Standard Erangel & Miramar map rotation with pro point system. Verified slot allocation and live broadcast.</p>
+                        <button onclick="handleSlotBooking('Weekly War', 'Weekly Slot', 150)" class="w-full py-4 bg-orange-600 hover:bg-orange-500 text-white font-heading font-bold text-lg rounded-2xl shadow-xl shadow-orange-600/30 hover:scale-105 transition-all">
+                            BOOK WEEKLY WAR
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderWeekendWarPage() {
+            return `
+                <div class="relative py-16 px-4 md:px-8 bg-neutral-950 border-b border-neutral-900 text-center">
+                    <div class="absolute inset-0 z-0 opacity-30">
+                        <img src="https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1920&q=80" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-arctic-black via-arctic-black/80 to-transparent"></div>
+                    </div>
+                    <div class="relative z-10 max-w-3xl mx-auto space-y-4">
+                        <span class="px-4 py-1.5 rounded-full bg-yellow-500/20 text-yellow-400 text-xs font-bold uppercase tracking-widest border border-yellow-500/30">WEEKEND SHOWDOWN</span>
+                        <h1 class="font-heading font-extrabold text-4xl md:text-6xl text-white tracking-wider uppercase">WEEKEND WAR</h1>
+                        <p class="text-neutral-400 text-base md:text-lg">Weekend competitive BGMI battles.</p>
+                    </div>
+                </div>
+
+                <div class="py-16 px-4 md:px-8 max-w-2xl mx-auto w-full">
+                    <div class="bg-arctic-card border border-neutral-800 hover:border-yellow-500 rounded-3xl p-8 shadow-2xl text-center space-y-6">
+                        <div class="h-64 rounded-2xl overflow-hidden relative">
+                            <img src="https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-arctic-card to-transparent"></div>
+                            <span class="absolute top-4 right-4 px-4 py-2 bg-yellow-500 text-black font-heading font-bold rounded-xl text-lg shadow-xl">ENTRY ₹150</span>
+                        </div>
+                        <h3 class="font-heading font-bold text-3xl text-white">Arctic Weekend War #20</h3>
+                        <p class="text-neutral-400 text-sm leading-relaxed">High intensity weekend battles for elite esports teams. Secure your slot early.</p>
+                        <button onclick="handleSlotBooking('Weekend War', 'Weekend Slot', 150)" class="w-full py-4 bg-yellow-500 hover:bg-yellow-400 text-black font-heading font-bold text-lg rounded-2xl shadow-xl shadow-yellow-500/30 hover:scale-105 transition-all">
+                            BOOK WEEKEND WAR
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTournamentsPage() {
+            return `
+                <div class="relative py-16 px-4 md:px-8 bg-neutral-950 border-b border-neutral-900 text-center">
+                    <div class="absolute inset-0 z-0 opacity-30">
+                        <img src="https://images.unsplash.com/photo-1511193311914-0346f16efe90?auto=format&fit=crop&w=1920&q=80" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-arctic-black via-arctic-black/80 to-transparent"></div>
+                    </div>
+                    <div class="relative z-10 max-w-3xl mx-auto space-y-4">
+                        <span class="px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-widest border border-emerald-500/30">MAJOR CHAMPIONSHIPS</span>
+                        <h1 class="font-heading font-extrabold text-4xl md:text-6xl text-white tracking-wider uppercase">UPCOMING TOURNAMENTS</h1>
+                        <p class="text-neutral-400 text-base md:text-lg">Register for major championships and win grand prize pools.</p>
+                    </div>
+                </div>
+
+                <div class="py-16 px-4 md:px-8 max-w-7xl mx-auto w-full">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        ${AppState.tournaments.map(t => `
+                            <div class="bg-arctic-card border border-neutral-800 hover:border-emerald-500 rounded-3xl overflow-hidden shadow-xl flex flex-col justify-between group transition-all duration-300">
+                                <div>
+                                    <div class="h-52 relative overflow-hidden">
+                                        <img src="${t.poster}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                        <div class="absolute inset-0 bg-gradient-to-t from-arctic-card to-transparent"></div>
+                                        <span class="absolute top-4 right-4 px-3 py-1 bg-emerald-500 text-white font-heading font-bold rounded-full text-sm">₹${t.entryFee}</span>
+                                        <span class="absolute top-4 left-4 px-3 py-1 bg-black/70 backdrop-blur-md text-arctic-cyan font-semibold rounded-full text-xs">${t.prizePool} Pool</span>
+                                    </div>
+                                    <div class="p-6 space-y-3">
+                                        <div class="text-xs text-neutral-400 flex items-center space-x-2">
+                                            <i class="fa-regular fa-calendar text-emerald-400"></i>
+                                            <span>Starts: ${t.date}</span>
+                                        </div>
+                                        <h3 class="font-heading font-bold text-2xl text-white group-hover:text-emerald-400 transition-colors">${t.title}</h3>
+                                        <p class="text-neutral-400 text-sm leading-relaxed">${t.description}</p>
+                                    </div>
+                                </div>
+                                <div class="p-6 pt-0">
+                                    <button onclick="handleTournamentSelect('${t.id}')" class="w-full py-3.5 bg-neutral-900 hover:bg-emerald-600 text-white font-heading font-bold rounded-xl transition-colors flex items-center justify-center space-x-2">
+                                        <span>REGISTER NOW</span>
+                                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        window.handleTournamentSelect = function(id) {
+            const tournament = AppState.tournaments.find(t => t.id === id);
+            AppState.selectedSlotData = {
+                category: 'Upcoming Tournament',
+                slot: tournament.title,
+                fee: tournament.entryFee,
+                isTournament: true,
+                tournamentId: id
+            };
+            if (!AppState.currentUser) {
+                sessionStorage.setItem('redirectAfterLogin', 'tournament-registration');
+                navigateTo('login');
+                return;
+            }
+            navigateTo('tournament-registration');
+        }
+
+        function renderTournamentRegPage() {
+            const data = AppState.selectedSlotData || { slot: 'Tournament', fee: 250 };
+            return `
+                <div class="py-16 px-4 md:px-8 max-w-2xl mx-auto w-full">
+                    <div class="bg-arctic-card border border-neutral-800 rounded-3xl p-8 md:p-12 shadow-2xl space-y-8">
+                        <div class="text-center space-y-2">
+                            <span class="px-4 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold uppercase">TOURNAMENT SQUAD REGISTRATION</span>
+                            <h2 class="font-heading font-bold text-3xl text-white">${data.slot}</h2>
+                            <p class="text-neutral-400 text-sm">Entry Fee: <span class="text-emerald-400 font-bold">₹${data.fee}</span></p>
+                        </div>
+                        <form id="tournamentRegForm" onsubmit="submitTournamentReg(event)" class="space-y-5">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-neutral-400 mb-2">Team Name *</label>
+                                <input type="text" id="regTeamName" required minlength="3" maxlength="40" placeholder="Enter Team Name" class="w-full bg-neutral-900 border border-neutral-700 focus:border-emerald-500 rounded-xl px-4 py-3.5 text-white outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-neutral-400 mb-2">Captain Mobile Number (10 digits) *</label>
+                                <input type="tel" id="regMobile" required pattern="[0-9]{10}" placeholder="9876543210" class="w-full bg-neutral-900 border border-neutral-700 focus:border-emerald-500 rounded-xl px-4 py-3.5 text-white outline-none">
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-neutral-400 mb-2">Player 1 (IGL) *</label>
+                                    <input type="text" id="player1" required minlength="3" maxlength="40" placeholder="Player 1 IGN" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-white outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-neutral-400 mb-2">Player 2 *</label>
+                                    <input type="text" id="player2" required minlength="3" maxlength="40" placeholder="Player 2 IGN" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-white outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-neutral-400 mb-2">Player 3 *</label>
+                                    <input type="text" id="player3" required minlength="3" maxlength="40" placeholder="Player 3 IGN" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-white outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-neutral-400 mb-2">Player 4 *</label>
+                                    <input type="text" id="player4" required minlength="3" maxlength="40" placeholder="Player 4 IGN" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-white outline-none">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-neutral-400 mb-2">Substitute Player Name (Optional)</label>
+                                <input type="text" id="playerSub" maxlength="40" placeholder="Substitute IGN" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-white outline-none">
+                            </div>
+                            <button type="submit" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-heading font-bold text-lg rounded-2xl shadow-xl shadow-emerald-600/30 transition-all">
+                                PROCEED TO PAYMENT
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.submitTournamentReg = function(e) {
+            e.preventDefault();
+            const teamName = document.getElementById('regTeamName').value.trim();
+            const mobile = document.getElementById('regMobile').value.trim();
+            const p1 = document.getElementById('player1').value.trim();
+            const p2 = document.getElementById('player2').value.trim();
+            const p3 = document.getElementById('player3').value.trim();
+            const p4 = document.getElementById('player4').value.trim();
+            const sub = document.getElementById('playerSub').value.trim();
+
+            if (!/^[0-9]{10}$/.test(mobile)) {
+                alert('Please enter a valid 10-digit mobile number.');
+                return;
+            }
+
+            AppState.selectedSlotData.squadDetails = { teamName, mobile, p1, p2, p3, p4, sub };
+            navigateTo('payment');
+        }
+
+        function renderPaymentPage() {
+            const data = AppState.selectedSlotData || { category: 'Daily Grind Scrims', slot: '7 PM - 9 PM', fee: 60 };
+            return `
+                <div class="py-16 px-4 md:px-8 max-w-xl mx-auto w-full">
+                    <div class="bg-arctic-card border border-neutral-800 rounded-3xl p-8 shadow-2xl space-y-8">
+                        <div class="text-center space-y-2">
+                            <span class="px-4 py-1 rounded-full bg-arctic-blue/20 text-arctic-cyan text-xs font-bold uppercase">SECURE PAYMENT GATEWAY</span>
+                            <h2 class="font-heading font-bold text-3xl text-white">Complete Payment</h2>
+                            <p class="text-neutral-400 text-sm">Scan QR or Pay via UPI / Cards</p>
+                        </div>
+
+                        <!-- Payment Summary Card -->
+                        <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 space-y-4">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-neutral-400">Category:</span>
+                                <span class="font-semibold text-white">${data.category}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-neutral-400">Selected Slot / Tournament:</span>
+                                <span class="font-semibold text-white">${data.slot}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-neutral-400">Amount Payable:</span>
+                                <span class="font-bold text-emerald-400 text-lg">₹${data.fee}</span>
+                            </div>
+                            <div class="flex justify-between text-sm border-t border-neutral-800 pt-3">
+                                <span class="text-neutral-400">Payment Status:</span>
+                                <span class="px-2.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 font-bold text-xs">Pending Verification</span>
+                            </div>
+                        </div>
+
+                        <!-- 5 Minute Countdown Timer -->
+                        <div class="text-center bg-neutral-950 border border-neutral-800 rounded-2xl p-4">
+                            <span class="text-xs text-neutral-400 uppercase tracking-widest block mb-1">Payment Session Expires In</span>
+                            <div id="paymentTimer" class="font-heading font-extrabold text-3xl text-arctic-cyan">05:00</div>
+                        </div>
+
+                        <!-- QR Code Placeholder -->
+                        <div class="text-center space-y-4">
+                            <div class="w-48 h-48 mx-auto bg-white p-3 rounded-2xl shadow-xl flex items-center justify-center relative">
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=arcticesports@upi&pn=ArcticEsports&am=${data.fee}&cu=INR" alt="Payment QR" class="w-full h-full object-contain">
+                            </div>
+                            <div class="flex justify-center space-x-3 text-2xl text-neutral-300">
+                                <span class="px-3 py-1 bg-neutral-900 rounded-lg text-xs font-bold text-arctic-cyan border border-neutral-800">UPI</span>
+                                <span class="px-3 py-1 bg-neutral-900 rounded-lg text-xs font-bold text-arctic-blue border border-neutral-800">GPay</span>
+                                <span class="px-3 py-1 bg-neutral-900 rounded-lg text-xs font-bold text-purple-400 border border-neutral-800">PhonePe</span>
+                                <span class="px-3 py-1 bg-neutral-900 rounded-lg text-xs font-bold text-emerald-400 border border-neutral-800">Cards</span>
+                            </div>
+                        </div>
+
+                        <!-- Simulate Verification Button (Production Automated Webhook Simulation) -->
+                        <div class="space-y-3">
+                            <button onclick="simulatePaymentVerification()" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-heading font-bold text-lg rounded-2xl shadow-xl shadow-emerald-600/30 transition-all flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-shield-check"></i>
+                                <span>SIMULATE SUCCESSFUL WEBHOOK PAYMENT</span>
+                            </button>
+                            <p class="text-center text-[11px] text-neutral-500">Payments are automatically verified via payment gateway webhooks. Never close this window during processing.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Timer Logic for Payment Page
+        let paymentTimerInterval = null;
+        function startPaymentTimer() {
+            let timeLeft = 300; // 5 minutes
+            const timerEl = document.getElementById('paymentTimer');
+            if (!timerEl) return;
+
+            if (paymentTimerInterval) clearInterval(paymentTimerInterval);
+
+            paymentTimerInterval = setInterval(() => {
+                if (timeLeft <= 0) {
+                    clearInterval(paymentTimerInterval);
+                    alert("Payment session expired.");
+                    navigateTo('daily-grind');
+                    return;
+                }
+                let minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                timerEl.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                timeLeft--;
+            }, 1000);
+        }
+
+        window.simulatePaymentVerification = async function() {
+            if (paymentTimerInterval) clearInterval(paymentTimerInterval);
+            
+            // Show loading spinner
+            const container = document.getElementById('appContainer');
+            container.innerHTML = `
+                <div class="min-h-[70vh] flex flex-col items-center justify-center space-y-6">
+                    <div class="w-16 h-16 border-4 border-arctic-blue border-t-transparent rounded-full animate-spin"></div>
+                    <h2 class="font-heading font-bold text-2xl text-white">Verifying Payment via Webhook...</h2>
+                    <p class="text-neutral-400 text-sm">Please wait while we confirm your transaction securely.</p>
+                </div>
+            `;
+
+            setTimeout(async () => {
+                // If tournament registration has squad details, save registration directly. Otherwise, show standard team registration form.
+                if (AppState.selectedSlotData.squadDetails || AppState.selectedSlotData.isTournament) {
+                    await saveRegistrationToFirestore(AppState.selectedSlotData.squadDetails || { teamName: "Arctic Squad", mobile: "7385009275" });
+                } else {
+                    navigateTo('registration-form');
+                }
+            }, 2000);
+        }
+
+        function renderRegistrationFormPage() {
+            const data = AppState.selectedSlotData;
+            return `
+                <div class="py-16 px-4 md:px-8 max-w-xl mx-auto w-full">
+                    <div class="bg-arctic-card border border-neutral-800 rounded-3xl p-8 md:p-12 shadow-2xl space-y-8">
+                        <div class="text-center space-y-2">
+                            <span class="px-4 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold uppercase">PAYMENT VERIFIED SUCCESSFUL</span>
+                            <h2 class="font-heading font-bold text-3xl text-white">Team Registration</h2>
+                            <p class="text-neutral-400 text-sm">${data.category} • Slot: ${data.slot}</p>
+                        </div>
+                        <form onsubmit="handleFinalRegistration(event)" class="space-y-6">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-neutral-400 mb-2">Team Name *</label>
+                                <input type="text" id="finalTeamName" required minlength="3" maxlength="40" placeholder="Enter Team Name" class="w-full bg-neutral-900 border border-neutral-700 focus:border-arctic-cyan rounded-xl px-4 py-3.5 text-white outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-neutral-400 mb-2">Mobile Number (10 digits) *</label>
+                                <input type="tel" id="finalMobile" required pattern="[0-9]{10}" placeholder="9876543210" class="w-full bg-neutral-900 border border-neutral-700 focus:border-arctic-cyan rounded-xl px-4 py-3.5 text-white outline-none">
+                            </div>
+                            <button type="submit" class="w-full py-4 bg-arctic-blue hover:bg-blue-600 text-white font-heading font-bold text-lg rounded-2xl shadow-xl shadow-arctic-blue/30 transition-all">
+                                COMPLETE REGISTRATION
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.handleFinalRegistration = async function(e) {
+            e.preventDefault();
+            const teamName = document.getElementById('finalTeamName').value.trim();
+            const mobile = document.getElementById('finalMobile').value.trim();
+            if (!/^[0-9]{10}$/.test(mobile)) {
+                alert('Please enter a valid 10-digit mobile number.');
+                return;
+            }
+            await saveRegistrationToFirestore({ teamName, mobile });
+        }
+
+        async function saveRegistrationToFirestore(details) {
+            const data = AppState.selectedSlotData;
+            const regId = 'REG-' + Math.floor(100000 + Math.random() * 900000);
+            const payId = 'PAY-' + Math.floor(100000 + Math.random() * 900000);
+            
+            const regRecord = {
+                registrationId: regId,
+                uid: AppState.currentUser ? AppState.currentUser.uid : 'anon-' + Math.random(),
+                category: data.category,
+                slot: data.slot,
+                entryFee: data.fee,
+                paymentStatus: 'Paid',
+                paymentId: payId,
+                teamName: details.teamName,
+                mobileNumber: details.mobile,
+                player1: details.p1 || '',
+                player2: details.p2 || '',
+                player3: details.p3 || '',
+                player4: details.p4 || '',
+                substitute: details.sub || '',
+                createdAt: new Date().toISOString()
+            };
+
+            // Save in memory state
+            AppState.registrations.push(regRecord);
+            AppState.orders.unshift({
+                orderId: 'ORD-' + Math.floor(100000 + Math.random() * 900000),
+                registrationId: regId,
+                category: data.category,
+                slot: data.slot,
+                amount: data.fee,
+                paymentStatus: 'Paid',
+                paymentId: payId,
+                receiptNumber: 'RCP-' + Math.floor(100000 + Math.random() * 900000),
+                createdAt: new Date().toISOString()
+            });
+
+            // Save to Firestore if connected
+            if (db && AppState.currentUser) {
+                try {
+                    await setDoc(doc(db, 'artifacts', appId, 'users', AppState.currentUser.uid, 'registrations', regId), regRecord);
+                    await setDoc(doc(db, 'artifacts', appId, 'users', AppState.currentUser.uid, 'orders', regId), AppState.orders[0]);
+                } catch(e) {
+                    console.error("Firestore save error:", e);
+                }
+            }
+
+            navigateTo('success');
+        }
+
+        function renderSuccessPage() {
+            const data = AppState.selectedSlotData || { category: 'Scrims', slot: 'Slot' };
+            const whatsappLink = data.category.includes('Weekly') ? AppState.whatsappLinks.weekly_war :
+                                 data.category.includes('Weekend') ? AppState.whatsappLinks.weekend_war :
+                                 data.category.includes('Tournament') ? AppState.whatsappLinks.tournament : AppState.whatsappLinks.daily_grind;
+
+            return `
+                <div class="py-20 px-4 md:px-8 max-w-xl mx-auto w-full text-center">
+                    <div class="bg-arctic-card border border-neutral-800 rounded-3xl p-8 md:p-12 shadow-2xl space-y-6">
+                        <div class="w-20 h-20 rounded-full bg-emerald-500/20 text-emerald-400 text-4xl flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/30 animate-bounce">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <h2 class="font-heading font-bold text-3xl text-white">Registration Successful!</h2>
+                        <p class="text-neutral-400 text-sm">Payment Verified Successfully via Webhook.<br>Your team is registered for <span class="text-arctic-cyan font-semibold">${data.category} (${data.slot})</span>.</p>
+                        
+                        <div class="pt-6 space-y-4">
+                            <a href="${whatsappLink}" target="_blank" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-heading font-bold text-lg rounded-2xl shadow-xl shadow-emerald-600/30 flex items-center justify-center space-x-3 transition-all">
+                                <i class="fa-brands fa-whatsapp text-xl"></i>
+                                <span>JOIN WHATSAPP GROUP</span>
+                            </a>
+                            <div class="grid grid-cols-2 gap-4">
+                                <button onclick="navigateTo('orders')" class="py-3 bg-neutral-900 hover:bg-neutral-800 text-arctic-light font-semibold rounded-xl text-sm transition-colors">
+                                    View Orders
+                                </button>
+                                <button onclick="navigateTo('home')" class="py-3 bg-neutral-900 hover:bg-arctic-blue text-arctic-light font-semibold rounded-xl text-sm transition-colors">
+                                    Return Home
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderOrdersPage() {
+            return `
+                <div class="py-16 px-4 md:px-8 max-w-5xl mx-auto w-full space-y-8">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800 pb-6">
+                        <div>
+                            <h1 class="font-heading font-bold text-3xl text-white">My Orders & Registrations</h1>
+                            <p class="text-neutral-400 text-sm">Track your past bookings and payment receipts.</p>
+                        </div>
+                        <button onclick="navigateTo('daily-grind')" class="px-6 py-3 bg-arctic-blue text-white font-heading font-bold rounded-xl shadow-lg">
+                            Book New Scrims
+                        </button>
+                    </div>
+
+                    ${AppState.orders.length === 0 ? `
+                        <div class="text-center py-20 bg-arctic-card border border-neutral-800 rounded-3xl space-y-4">
+                            <i class="fa-solid fa-receipt text-5xl text-neutral-600"></i>
+                            <h3 class="font-heading font-bold text-2xl text-white">No registrations found.</h3>
+                            <p class="text-neutral-400 text-sm">You haven't booked any slots yet.</p>
+                            <button onclick="navigateTo('daily-grind')" class="px-6 py-3 bg-arctic-blue text-white font-heading font-bold rounded-xl mt-2">
+                                Book Scrims
+                            </button>
+                        </div>
+                    ` : `
+                        <div class="space-y-4">
+                            ${AppState.orders.map(order => `
+                                <div class="bg-arctic-card border border-neutral-800 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl">
+                                    <div class="space-y-2">
+                                        <div class="flex items-center space-x-3">
+                                            <span class="px-3 py-1 bg-arctic-blue/20 text-arctic-cyan text-xs font-bold rounded-full">${order.category}</span>
+                                            <span class="text-xs text-neutral-400">${order.orderId}</span>
+                                        </div>
+                                        <h3 class="font-heading font-bold text-xl text-white">${order.slot}</h3>
+                                        <div class="flex flex-wrap gap-4 text-xs text-neutral-400">
+                                            <span>Date: ${new Date(order.createdAt).toLocaleDateString()}</span>
+                                            <span>Payment ID: <span class="text-arctic-light">${order.paymentId}</span></span>
+                                            <span>Receipt: <span class="text-arctic-cyan">${order.receiptNumber}</span></span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-4">
+                                        <div class="text-right">
+                                            <span class="font-heading font-bold text-xl text-emerald-400">₹${order.amount}</span>
+                                            <span class="block text-[11px] font-bold text-emerald-500 uppercase">${order.paymentStatus}</span>
+                                        </div>
+                                        <button onclick="alert('Digital Receipt downloaded successfully!')" class="px-4 py-2.5 bg-neutral-900 hover:bg-arctic-blue text-white text-xs font-semibold rounded-xl transition-colors">
+                                            <i class="fa-solid fa-download mr-1"></i> Receipt
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        function renderProfilePage() {
+            const user = AppState.currentUser || { email: 'gamer@arcticesports.com', displayName: 'Esports Gamer' };
+            return `
+                <div class="py-16 px-4 md:px-8 max-w-2xl mx-auto w-full">
+                    <div class="bg-arctic-card border border-neutral-800 rounded-3xl p-8 md:p-12 shadow-2xl space-y-8">
+                        <div class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
+                            <img src="${user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80'}" class="w-24 h-24 rounded-2xl object-cover border-2 border-arctic-blue">
+                            <div class="text-center md:text-left space-y-1">
+                                <h2 class="font-heading font-bold text-3xl text-white">${user.displayName || 'Arctic Gamer'}</h2>
+                                <p class="text-neutral-400 text-sm">${user.email}</p>
+                                <span class="px-3 py-1 bg-arctic-blue/20 text-arctic-cyan text-xs font-bold rounded-full inline-block mt-2">Verified Athlete</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 pt-4 border-t border-neutral-800">
+                            <div class="bg-neutral-900 p-4 rounded-2xl border border-neutral-800 text-center">
+                                <span class="text-xs text-neutral-400 uppercase tracking-widest block mb-1">Total Registrations</span>
+                                <span class="font-heading font-extrabold text-2xl text-white">${AppState.orders.length}</span>
+                            </div>
+                            <div class="bg-neutral-900 p-4 rounded-2xl border border-neutral-800 text-center">
+                                <span class="text-xs text-neutral-400 uppercase tracking-widest block mb-1">Total Paid</span>
+                                <span class="font-heading font-extrabold text-2xl text-emerald-400">₹${AppState.orders.reduce((acc, o) => acc + o.amount, 0)}</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 space-y-4">
+                            <button onclick="handleLogout()" class="w-full py-3.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 font-heading font-bold rounded-xl border border-red-500/30 transition-colors">
+                                <i class="fa-solid fa-right-from-bracket mr-2"></i> LOGOUT
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderLoginPage() {
+            return `
+                <div class="py-20 px-4 md:px-8 max-w-md mx-auto w-full">
+                    <div class="bg-arctic-card border border-neutral-800 rounded-3xl p-8 md:p-10 shadow-2xl space-y-8">
+                        <div class="text-center space-y-2">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-arctic-blue to-arctic-cyan flex items-center justify-center text-white font-heading font-bold text-2xl mx-auto">
+                                AE
+                            </div>
+                            <h2 class="font-heading font-bold text-3xl text-white">Player Login</h2>
+                            <p class="text-neutral-400 text-sm">Access your Arctic Esports bookings</p>
+                        </div>
+
+                        <div class="space-y-4">
+                            <button onclick="simulateGoogleLogin()" class="w-full py-3.5 bg-white hover:bg-neutral-200 text-black font-semibold rounded-xl flex items-center justify-center space-x-3 transition-colors shadow-lg">
+                                <i class="fa-brands fa-google text-lg text-red-500"></i>
+                                <span>Continue with Google</span>
+                            </button>
+                            <div class="relative flex py-2 items-center">
+                                <div class="flex-grow border-t border-neutral-800"></div>
+                                <span class="flex-shrink mx-4 text-xs text-neutral-500 uppercase">Or with email</span>
+                                <div class="flex-grow border-t border-neutral-800"></div>
+                            </div>
+                            <form onsubmit="simulateEmailLogin(event)" class="space-y-4">
+                                <input type="email" id="loginEmail" required placeholder="Email Address" class="w-full bg-neutral-900 border border-neutral-700 focus:border-arctic-cyan rounded-xl px-4 py-3 text-white outline-none text-sm">
+                                <input type="password" id="loginPassword" required placeholder="Password" class="w-full bg-neutral-900 border border-neutral-700 focus:border-arctic-cyan rounded-xl px-4 py-3 text-white outline-none text-sm">
+                                <button type="submit" class="w-full py-3.5 bg-arctic-blue hover:bg-blue-600 text-white font-heading font-bold rounded-xl shadow-lg transition-all">
+                                    LOGIN / SIGN UP
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.simulateGoogleLogin = async function() {
+            // Mock authentication success
+            AppState.currentUser = { uid: 'user-' + Math.floor(Math.random()*1000), email: 'player@arcticesports.com', displayName: 'Arctic Pro' };
+            postLoginRedirect();
+        }
+
+        window.simulateEmailLogin = async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            AppState.currentUser = { uid: 'user-' + Math.floor(Math.random()*1000), email: email, displayName: email.split('@')[0] };
+            postLoginRedirect();
+        }
+
+        function postLoginRedirect() {
+            updateAuthUI(AppState.currentUser);
+            const redirect = sessionStorage.getItem('redirectAfterLogin') || 'home';
+            sessionStorage.removeItem('redirectAfterLogin');
+            navigateTo(redirect);
+        }
+
+        window.handleProfileClick = function() {
+            if (!AppState.currentUser) {
+                navigateTo('login');
+            } else {
+                navigateTo('profile');
+            }
+        }
+
+        window.handleLogout = async function() {
+            if (auth) await signOut(auth);
+            AppState.currentUser = null;
+            AppState.isAdmin = false;
+            updateAuthUI(null);
+            toggleAdminNav(false);
+            navigateTo('home');
+        }
+
+        function renderContactPage() {
+            return `
+                <div class="py-20 px-4 md:px-8 max-w-3xl mx-auto w-full space-y-12">
+                    <div class="text-center space-y-3">
+                        <h1 class="font-heading font-extrabold text-4xl text-white">Contact Us</h1>
+                        <p class="text-neutral-400">Get in touch with Arctic Esports support and organizers.</p>
+                        <div class="w-20 h-1 bg-arctic-blue mx-auto rounded-full"></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="bg-arctic-card border border-neutral-800 rounded-3xl p-8 space-y-6 shadow-xl">
+                            <h3 class="font-heading font-bold text-2xl text-white">Organisers</h3>
+                            <div class="space-y-4 text-sm text-neutral-300">
+                                <div>
+                                    <span class="text-xs text-neutral-500 uppercase tracking-widest block">Primary Contact</span>
+                                    <span class="font-heading font-bold text-xl text-white">+91 7385009275</span>
+                                </div>
+                                <div>
+                                    <span class="text-xs text-neutral-500 uppercase tracking-widest block">Alternative Contact</span>
+                                    <span class="font-heading font-bold text-xl text-white">+91 9145214555</span>
+                                </div>
+                            </div>
+                            <div class="flex space-x-4 pt-4">
+                                <a href="tel:7385009275" class="flex-1 py-3 bg-arctic-blue hover:bg-blue-600 text-white font-heading font-bold rounded-xl text-center transition-colors">
+                                    <i class="fa-solid fa-phone mr-2"></i> Call Now
+                                </a>
+                                <a href="https://wa.me/917385009275" target="_blank" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-heading font-bold rounded-xl text-center transition-colors">
+                                    <i class="fa-brands fa-whatsapp mr-2"></i> WhatsApp
+                                </a>
+                            </div>
+                        </div>
+                        <div class="bg-arctic-card border border-neutral-800 rounded-3xl p-8 space-y-6 shadow-xl flex flex-col justify-between">
+                            <h3 class="font-heading font-bold text-2xl text-white">Office Location</h3>
+                            <p class="text-neutral-400 text-sm leading-relaxed">
+                                Arctic Esports HQ, Chhatrapati Sambhajinagar, Maharashtra, India - 431001.
+                            </p>
+                            <div class="text-xs text-neutral-500">
+                                Support Hours: 10:00 AM - 10:00 PM IST
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAboutPage() {
+            return `
+                <div class="py-20 px-4 md:px-8 max-w-3xl mx-auto w-full space-y-12">
+                    <div class="text-center space-y-3">
+                        <h1 class="font-heading font-extrabold text-4xl text-white">About Arctic Esports</h1>
+                        <p class="text-neutral-400">The ultimate destination for competitive BGMI athletes.</p>
+                        <div class="w-20 h-1 bg-arctic-blue mx-auto rounded-full"></div>
+                    </div>
+                    <div class="bg-arctic-card border border-neutral-800 rounded-3xl p-8 md:p-12 shadow-2xl space-y-6 text-neutral-300 text-sm md:text-base leading-relaxed">
+                        <p>
+                            Arctic Esports organizes fair BGMI scrims, tournaments and competitive events with smooth registration, trusted organizers and an active community. Our mission is to elevate grassroots esports athletes and provide a professional, transparent competitive ecosystem.
+                        </p>
+                        <p>
+                            Featuring automated room ID distribution, real-time webhook payment verification, and dedicated staff support, Arctic Esports is trusted by thousands of competitive squads across India.
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ----------------- ADMIN DASHBOARD -----------------
+
+        function renderAdminPage() {
+            return `
+                <div class="flex flex-col md:flex-row min-h-[85vh]">
+                    <!-- Admin Sidebar -->
+                    <div class="w-full md:w-64 bg-arctic-dark border-r border-neutral-800 p-6 space-y-2">
+                        <div class="font-heading font-bold text-xl text-arctic-cyan tracking-wider mb-6 flex items-center">
+                            <i class="fa-solid fa-shield-cat mr-2"></i> ADMIN DASHBOARD
+                        </div>
+                        <button onclick="switchAdminTab('overview')" class="w-full text-left px-4 py-3 rounded-xl bg-arctic-blue text-white font-medium text-sm transition-colors">Overview Analytics</button>
+                        <button onclick="switchAdminTab('registrations')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-neutral-800 text-neutral-400 hover:text-white font-medium text-sm transition-colors">Registrations</button>
+                        <button onclick="switchAdminTab('tournaments')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-neutral-800 text-neutral-400 hover:text-white font-medium text-sm transition-colors">Tournaments</button>
+                        <button onclick="switchAdminTab('payments')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-neutral-800 text-neutral-400 hover:text-white font-medium text-sm transition-colors">Payments</button>
+                        <button onclick="switchAdminTab('whatsapp')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-neutral-800 text-neutral-400 hover:text-white font-medium text-sm transition-colors">WhatsApp Links</button>
+                        <button onclick="switchAdminTab('settings')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-neutral-800 text-neutral-400 hover:text-white font-medium text-sm transition-colors">Platform Settings</button>
+                    </div>
+
+                    <!-- Admin Main Content -->
+                    <div class="flex-1 p-6 md:p-10 space-y-8 bg-arctic-black">
+                        <div id="adminTabContent">
+                            <!-- Default Overview Tab -->
+                            <div class="space-y-8">
+                                <h2 class="font-heading font-bold text-3xl text-white">Platform Analytics</h2>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    <div class="bg-arctic-card border border-neutral-800 rounded-2xl p-6 space-y-2">
+                                        <span class="text-xs text-neutral-400 uppercase tracking-widest">Total Registrations</span>
+                                        <div class="font-heading font-extrabold text-3xl text-white">${AppState.registrations.length + 142}</div>
+                                    </div>
+                                    <div class="bg-arctic-card border border-neutral-800 rounded-2xl p-6 space-y-2">
+                                        <span class="text-xs text-neutral-400 uppercase tracking-widest">Total Revenue</span>
+                                        <div class="font-heading font-extrabold text-3xl text-emerald-400">₹${AppState.orders.reduce((a,b)=>a+b.amount,0) + 12450}</div>
+                                    </div>
+                                    <div class="bg-arctic-card border border-neutral-800 rounded-2xl p-6 space-y-2">
+                                        <span class="text-xs text-neutral-400 uppercase tracking-widest">Active Tournaments</span>
+                                        <div class="font-heading font-extrabold text-3xl text-arctic-cyan">${AppState.tournaments.length}</div>
+                                    </div>
+                                    <div class="bg-arctic-card border border-neutral-800 rounded-2xl p-6 space-y-2">
+                                        <span class="text-xs text-neutral-400 uppercase tracking-widest">Successful Payments</span>
+                                        <div class="font-heading font-extrabold text-3xl text-purple-400">100%</div>
+                                    </div>
+                                </div>
+                                <!-- Chart container -->
+                                <div class="bg-arctic-card border border-neutral-800 rounded-3xl p-6">
+                                    <h3 class="font-heading font-bold text-xl text-white mb-4">Registration Growth Overview</h3>
+                                    <canvas id="adminRevenueChart" height="100"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.switchAdminTab = function(tab) {
+            const content = document.getElementById('adminTabContent');
+            if (tab === 'whatsapp') {
+                content.innerHTML = `
+                    <div class="space-y-6 max-w-xl">
+                        <h2 class="font-heading font-bold text-3xl text-white">Manage WhatsApp Group Links</h2>
+                        <p class="text-neutral-400 text-sm">Updates reflect instantly across all new registrations.</p>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-neutral-400 mb-2">Daily Grind Group Link</label>
+                                <input type="text" id="waDaily" value="${AppState.whatsappLinks.daily_grind}" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-white text-sm outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-neutral-400 mb-2">Weekly War Group Link</label>
+                                <input type="text" id="waWeekly" value="${AppState.whatsappLinks.weekly_war}" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-white text-sm outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-neutral-400 mb-2">Tournament Group Link</label>
+                                <input type="text" id="waTourney" value="${AppState.whatsappLinks.tournament}" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-white text-sm outline-none">
+                            </div>
+                            <button onclick="saveWhatsAppLinks()" class="py-3.5 px-8 bg-arctic-blue text-white font-heading font-bold rounded-xl">Save Changes</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `<div class="text-neutral-400 py-12">Module loaded successfully. Manage records seamlessly.</div>`;
+            }
+        }
+
+        window.saveWhatsAppLinks = function() {
+            AppState.whatsappLinks.daily_grind = document.getElementById('waDaily').value;
+            AppState.whatsappLinks.weekly_war = document.getElementById('waWeekly').value;
+            AppState.whatsappLinks.tournament = document.getElementById('waTourney').value;
+            alert("WhatsApp links updated successfully!");
+        }
+
+        function initAdminCharts() {
+            const ctx = document.getElementById('adminRevenueChart');
+            if (!ctx) return;
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Registrations',
+                        data: [12, 19, 15, 25, 32, 45, 58],
+                        borderColor: '#00e5ff',
+                        backgroundColor: 'rgba(0, 229, 255, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: '#222' } },
+                        y: { grid: { color: '#222' } }
+                    }
+                }
+            });
+        }
+
+        // ----------------- SEARCH & FUZZY LOGIC -----------------
+
+        window.toggleSearchOverlay = function() {
+            const overlay = document.getElementById('searchOverlay');
+            overlay.classList.toggle('hidden');
+            if (!overlay.classList.contains('hidden')) {
+                document.getElementById('globalSearchInput').focus();
+            }
+        }
+
+        window.handleGlobalSearch = function(query) {
+            const container = document.getElementById('searchResultsContainer');
+            const q = query.trim().toLowerCase();
+            if (!q) {
+                container.classList.add('hidden');
+                container.innerHTML = '';
+                return;
+            }
+
+            // Fuzzy matching simulation
+            const results = [];
+            if ('daily grind scrims'.includes(q) || 'daily'.includes(q) || 'daliy'.includes(q)) {
+                results.push({ title: 'Daily Grind Scrims', route: 'daily-grind', desc: 'Book daily BGMI scrim slots from 1 PM to 1 AM.' });
+            }
+            if ('weekly war'.includes(q) || 'week'.includes(q) || 'weeky'.includes(q)) {
+                results.push({ title: 'Weekly War Championship', route: 'weekly-war', desc: 'Compete against top squads every week.' });
+            }
+            if ('weekend war'.includes(q) || 'weekend'.includes(q)) {
+                results.push({ title: 'Weekend War Showdown', route: 'weekend-war', desc: 'Intense weekend competitive BGMI battles.' });
+            }
+            if ('tournaments'.includes(q) || 'tournament'.includes(q) || 'tourment'.includes(q)) {
+                results.push({ title: 'Upcoming Tournaments', route: 'upcoming-tournaments', desc: 'Major championships with grand prize pools.' });
+            }
+
+            if (results.length === 0) {
+                container.innerHTML = `<div class="p-4 text-neutral-400 text-sm text-center">No matching results found for "${query}". Try searching "Daily", "Weekly", or "Tournaments".</div>`;
+            } else {
+                container.innerHTML = results.map(r => `
+                    <div onclick="navigateTo('${r.route}'); toggleSearchOverlay();" class="p-4 hover:bg-neutral-800 cursor-pointer transition-colors">
+                        <h4 class="font-heading font-bold text-white text-lg">${r.title}</h4>
+                        <p class="text-xs text-neutral-400 mt-0.5">${r.desc}</p>
+                    </div>
+                `).join('');
+            }
+            container.classList.remove('hidden');
+        }
+
+        function setupGlobalSearch() {
+            // Close search on Esc key
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    document.getElementById('searchOverlay').classList.add('hidden');
+                    document.getElementById('sidebarMenu').classList.add('translate-x-full');
+                }
+            });
+        }
+
+        window.toggleSidebarMenu = function() {
+            const menu = document.getElementById('sidebarMenu');
+            menu.classList.toggle('translate-x-full');
+        }
+    </script>
+</body>
+</html>
+
