@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tournament Registration — Arctic Esports</title>
+<meta name="description" content="Register your squad for an Arctic Esports BGMI tournament." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { ink:'#0A0A0F', frost:'#F5F7FA', steel:'#94A3B8', bolt:'#2563EB', cyan:'#22D3EE' },
+    fontFamily: { display:['Rajdhani','sans-serif'], body:['Inter','sans-serif'] },
+  } } };
+</script>
+<style>
+  body { font-family:'Inter', sans-serif; }
+  .font-display { font-family:'Rajdhani', sans-serif; }
+  .glow-blue:hover { box-shadow: 0 0 20px rgba(37,99,235,.5); }
+  input:invalid.touched { border-color: #ef4444; }
+</style>
+</head>
+<body class="bg-frost text-ink">
+
+<header class="bg-black h-[70px] flex items-center sticky top-0 z-30">
+  <div class="max-w-2xl mx-auto w-full px-4 flex items-center justify-between">
+    <a href="upcoming-tournaments.html" class="text-white font-display font-bold text-lg">← Tournaments</a>
+  </div>
+</header>
+
+<section class="relative h-48 bg-black overflow-hidden">
+  <img id="bannerImg" src="" loading="lazy" alt="Tournament banner" class="w-full h-full object-cover opacity-60" />
+  <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
+  <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+    <h1 id="tournamentName" class="font-display font-bold text-3xl text-white"></h1>
+    <p id="tournamentFee" class="text-cyan font-display font-semibold mt-1"></p>
+  </div>
+</section>
+
+<section class="max-w-2xl mx-auto px-4 py-10">
+  <form id="regForm" class="bg-white rounded-2xl shadow-sm p-6 space-y-5">
+    <div id="formError" class="hidden text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3"></div>
+
+    <div>
+      <label class="text-xs font-display tracking-wide text-steel">TEAM NAME</label>
+      <input name="teamName" required minlength="3" maxlength="40" placeholder="e.g. Arctic Wolves"
+        class="mt-1 w-full border border-slate-200 focus:border-bolt outline-none rounded-lg px-4 py-3" />
+    </div>
+    <div>
+      <label class="text-xs font-display tracking-wide text-steel">MOBILE NUMBER</label>
+      <input name="mobileNumber" required pattern="[0-9]{10}" maxlength="10" inputmode="numeric" placeholder="10-digit mobile number"
+        class="mt-1 w-full border border-slate-200 focus:border-bolt outline-none rounded-lg px-4 py-3" />
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div><label class="text-xs font-display tracking-wide text-steel">PLAYER 1 NAME</label>
+        <input name="player1" required minlength="3" maxlength="40" class="mt-1 w-full border border-slate-200 focus:border-bolt outline-none rounded-lg px-4 py-3" /></div>
+      <div><label class="text-xs font-display tracking-wide text-steel">PLAYER 2 NAME</label>
+        <input name="player2" required minlength="3" maxlength="40" class="mt-1 w-full border border-slate-200 focus:border-bolt outline-none rounded-lg px-4 py-3" /></div>
+      <div><label class="text-xs font-display tracking-wide text-steel">PLAYER 3 NAME</label>
+        <input name="player3" required minlength="3" maxlength="40" class="mt-1 w-full border border-slate-200 focus:border-bolt outline-none rounded-lg px-4 py-3" /></div>
+      <div><label class="text-xs font-display tracking-wide text-steel">PLAYER 4 NAME</label>
+        <input name="player4" required minlength="3" maxlength="40" class="mt-1 w-full border border-slate-200 focus:border-bolt outline-none rounded-lg px-4 py-3" /></div>
+    </div>
+    <div>
+      <label class="text-xs font-display tracking-wide text-steel">SUBSTITUTE PLAYER NAME <span class="text-slate-400">(optional)</span></label>
+      <input name="substitute" maxlength="40" class="mt-1 w-full border border-slate-200 focus:border-bolt outline-none rounded-lg px-4 py-3" />
+    </div>
+
+    <button type="submit" id="submitBtn" class="glow-blue w-full bg-bolt text-white font-display font-bold py-3 rounded-lg transition-shadow">
+      Proceed To Payment
+    </button>
+  </form>
+</section>
+
+<script type="module">
+  import { requireAuth } from "../src/firebase/auth-service.js";
+
+  const params = new URLSearchParams(window.location.search);
+  const tournamentId = params.get('id') || '';
+  const tournamentName = params.get('name') || 'Arctic Esports Tournament';
+  const fee = params.get('fee') || '0';
+  const poster = params.get('poster') || 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1200&q=80';
+
+  document.getElementById('tournamentName').textContent = tournamentName;
+  document.getElementById('tournamentFee').textContent = `Entry ₹${fee}`;
+  document.getElementById('bannerImg').src = poster;
+
+  const form = document.getElementById('regForm');
+  const errorBox = document.getElementById('formError');
+
+  function validate(data) {
+    if (data.teamName.trim().length < 3) return 'Team name must be at least 3 characters.';
+    if (!/^[0-9]{10}$/.test(data.mobileNumber)) return 'Mobile number must be exactly 10 digits.';
+    for (const p of ['player1', 'player2', 'player3', 'player4']) {
+      if (data[p].trim().length < 3) return `${p.replace('player', 'Player ')} name must be at least 3 characters.`;
+    }
+    return null;
+  }
+
+  let submitting = false;
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (submitting) return; // prevent duplicate submissions
+    const fd = new FormData(form);
+    const data = Object.fromEntries(fd.entries());
+    const err = validate(data);
+    if (err) { errorBox.textContent = err; errorBox.classList.remove('hidden'); return; }
+    errorBox.classList.add('hidden');
+    submitting = true;
+
+    const returnUrl = window.location.href;
+    requireAuth(returnUrl, () => {
+      // Stash the roster so payment.html (and the post-payment save) can read
+      // it back without asking the user to type everything twice.
+      sessionStorage.setItem('arctic_tournament_reg', JSON.stringify({
+        tournamentId, tournamentName, fee, ...data,
+      }));
+      const p = new URLSearchParams({
+        category: 'tournament', categoryLabel: tournamentName, fee, tournamentId,
+      });
+      window.location.href = `payment.html?${p.toString()}`;
+    });
+  });
+</script>
+</body>
+</html>
