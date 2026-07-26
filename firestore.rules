@@ -1,0 +1,83 @@
+rules_version = '2';
+
+// ==========================================================================
+// Arctic Esports — Firestore Security Rules
+// --------------------------------------------------------------------------
+// Deploy with: firebase deploy --only firestore:rules
+//
+// Design:
+// - A user can read/write only their own /users/{uid} doc.
+// - A user can read (never write) their own registrations/orders.
+//   All writes to registrations/orders happen from Cloud Functions
+//   (admin SDK), which bypasses these rules — the frontend never writes
+//   paymentStatus itself. (Note: register.html in this scaffold writes
+//   directly from the client for simplicity; harden this by moving that
+//   write into a Cloud Function once you're ready for production traffic.)
+// - Only users with role == 'admin' in /users/{uid} can touch tournaments,
+//   announcements, settings, whatsapp_links, faq, scrims, users (others'),
+//   payments, reports.
+// ==========================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // ---- users ----
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow write: if isOwner(uid) || isAdmin();
+    }
+
+    // ---- registrations ----
+    match /registrations/{regId} {
+      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      // Client may create its own registration once (payment already
+      // verified server-side before this write happens), but never edit
+      // paymentStatus after the fact.
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.paymentStatus == 'Paid';
+      allow update, delete: if isAdmin();
+    }
+
+    // ---- orders ----
+    match /orders/{orderId} {
+      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // ---- payment_logs: backend (Admin SDK) only, never the client ----
+    match /payment_logs/{logId} {
+      allow read, write: if false;
+    }
+
+    // ---- public read, admin write ----
+    match /tournaments/{id}      { allow read: if true; allow write: if isAdmin(); }
+    match /scrims/{id}           { allow read: if true; allow write: if isAdmin(); }
+    match /announcements/{id}    { allow read: if true; allow write: if isAdmin(); }
+    match /faq/{id}              { allow read: if true; allow write: if isAdmin(); }
+    match /whatsapp_links/{id}   { allow read: if true; allow write: if isAdmin(); }
+    match /settings/{id}         { allow read: if true; allow write: if isAdmin(); }
+
+    // ---- admin-only ----
+    match /audit_logs/{id}       { allow read, write: if isAdmin(); }
+
+    // Default deny for anything not explicitly listed above.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
