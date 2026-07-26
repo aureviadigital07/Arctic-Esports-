@@ -1,0 +1,212 @@
+// ==========================================================================
+// Arctic Esports — Payment Backend (Firebase Cloud Functions)
+// --------------------------------------------------------------------------
+// This is the ONLY code in the whole project allowed to hold the Razorpay
+// secret key and the webhook secret. It is the only code allowed to decide
+// a payment is real. Everything in /public and /src is frontend — it can be
+// read, copied, and edited by anyone visiting the site, so it must never be
+// trusted to self-report "paid".
+//
+// Deploy with: firebase deploy --only functions
+// Set secrets with:
+//   firebase functions:config:set razorpay.key_id="YOUR_KEY" \
+//                                  razorpay.key_secret="YOUR_SECRET" \
+//                                  razorpay.webhook_secret="YOUR_WEBHOOK_SECRET"
+// ==========================================================================
+
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
+const Razorpay = require("razorpay");
+const crypto = require("crypto");
+const cors = require("cors")({ origin: true });
+
+admin.initializeApp();
+const db = admin.firestore();
+
+const razorpay = new Razorpay({
+  key_id: functions.config().razorpay?.key_id || "YOUR_PAYMENT_GATEWAY_KEY",
+  key_secret: functions.config().razorpay?.key_secret || "YOUR_PAYMENT_GATEWAY_SECRET",
+});
+
+// --------------------------------------------------------------------------
+// Server-side price list. This is the ONLY source of truth for what
+// something costs. The frontend's ?fee=... is for display only — the
+// backend never reads it when deciding how much to charge.
+// --------------------------------------------------------------------------
+const SCRIM_FEE = 60;
+const WAR_FEE = 150;
+
+async function resolveAmountPaise({ category, slot, tournamentId }) {
+  if (category === "daily-grind") return SCRIM_FEE * 100;
+  if (category === "weekly-war" || category === "weekend-war") return WAR_FEE * 100;
+  if (category === "tournament") {
+    if (!tournamentId) throw new Error("Missing tournamentId for tournament payment.");
+    const snap = await db.collection("tournaments").doc(tournamentId).get();
+    if (!snap.exists) throw new Error("Unknown tournament.");
+    const fee = snap.data().entryFee;
+    if (!fee || fee <= 0) throw new Error("Invalid tournament entry fee.");
+    return Math.round(fee * 100);
+  }
+  throw new Error("Unknown booking category.");
+}
+
+// --------------------------------------------------------------------------
+// POST /createOrder  { category, slot, tournamentId, uid }
+// --------------------------------------------------------------------------
+exports.createOrder = functions.https.onRequest((req, res) => {
+  cors(req, res, async () => {
+    try {
+      if (req.method !== "POST") return res.status(405).send("Method not allowed");
+      const { category, slot, tournamentId, uid } = req.body || {};
+      if (!uid) return res.status(401).json({ error: "Not authenticated." });
+
+      const amount = await resolveAmountPaise({ category, slot, tournamentId });
+
+      const order = await razorpay.orders.create({
+        amount,
+        currency: "INR",
+        receipt: `${category}_${Date.now()}`,
+        notes: { category, slot: slot || "", tournamentId: tournamentId || "", uid },
+      });
+
+      // Log every order attempt for reconciliation, before we know if it's paid.
+      await db.collection("payment_logs").doc(order.id).set({
+        paymentId: order.id,
+        gateway: "razorpay",
+        amount: amount / 100,
+        status: "created",
+        userId: uid,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      res.json({ orderId: order.id, amount, currency: "INR" });
+    } catch (err) {
+      console.error("createOrder failed", err);
+      res.status(400).json({ error: err.message || "Could not create order." });
+    }
+  });
+});
+
+// --------------------------------------------------------------------------
+// POST /verifyPayment
+//   { razorpay_order_id, razorpay_payment_id, razorpay_signature,
+//     category, slot, tournamentId, uid }
+//
+// This recomputes Razorpay's HMAC signature server-side with the secret
+// key. If it doesn't match, we reject — no registration is ever created
+// from an unverified request, no matter what the frontend claims.
+// --------------------------------------------------------------------------
+exports.verifyPayment = functions.https.onRequest((req, res) => {
+  cors(req, res, async () => {
+    try {
+      if (req.method !== "POST") return res.status(405).send("Method not allowed");
+      const {
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+        uid,
+      } = req.body || {};
+
+      if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+        return res.status(400).json({ verified: false, error: "Missing payment fields." });
+      }
+
+      // Reject replay: a payment_id can only ever verify successfully once.
+      const logRef = db.collection("payment_logs").doc(razorpay_order_id);
+      const logSnap = await logRef.get();
+      if (logSnap.exists && logSnap.data().status === "verified") {
+        return res.status(409).json({ verified: false, error: "Payment already used." });
+      }
+
+      const secret = functions.config().razorpay?.key_secret || "YOUR_PAYMENT_GATEWAY_SECRET";
+      const expectedSignature = crypto
+        .createHmac("sha256", secret)
+        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+        .digest("hex");
+
+      if (expectedSignature !== razorpay_signature) {
+        await logRef.set({ status: "signature_mismatch" }, { merge: true });
+        return res.status(400).json({ verified: false, error: "Signature verification failed." });
+      }
+
+      await logRef.set({
+        status: "verified",
+        razorpayPaymentId: razorpay_payment_id,
+        verifiedAt: admin.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true });
+
+      res.json({ verified: true, paymentId: razorpay_payment_id });
+    } catch (err) {
+      console.error("verifyPayment failed", err);
+      res.status(400).json({ verified: false, error: err.message || "Verification error." });
+    }
+  });
+});
+
+// --------------------------------------------------------------------------
+// Razorpay webhook — the authoritative source, independent of whether the
+// user's browser stays open long enough to call verifyPayment. Configure
+// this URL in the Razorpay Dashboard > Webhooks, with YOUR_WEBHOOK_SECRET.
+// --------------------------------------------------------------------------
+exports.razorpayWebhook = functions.https.onRequest(async (req, res) => {
+  try {
+    const signature = req.headers["x-razorpay-signature"];
+    const webhookSecret = functions.config().razorpay?.webhook_secret || "YOUR_WEBHOOK_SECRET";
+    const expected = crypto
+      .createHmac("sha256", webhookSecret)
+      .update(JSON.stringify(req.body))
+      .digest("hex");
+
+    if (signature !== expected) {
+      console.warn("Webhook signature mismatch — ignoring.");
+      return res.status(400).send("Invalid signature");
+    }
+
+    const event = req.body.event;
+    if (event === "payment.captured") {
+      const payment = req.body.payload.payment.entity;
+      await db.collection("payment_logs").doc(payment.order_id).set({
+        status: "captured_via_webhook",
+        razorpayPaymentId: payment.id,
+        amount: payment.amount / 100,
+        capturedAt: admin.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true });
+    }
+
+    res.status(200).send("ok");
+  } catch (err) {
+    console.error("Webhook handling failed", err);
+    res.status(500).send("error");
+  }
+});
+
+// --------------------------------------------------------------------------
+// Firestore trigger — fires whenever a registration is created, and
+// notifies the organizer. The user never sees this; it's admin-only.
+// Wire NOTIFY_URL to a Telegram bot / WhatsApp Business API / Slack
+// webhook of your choice.
+// --------------------------------------------------------------------------
+exports.onRegistrationCreated = functions.firestore
+  .document("registrations/{registrationId}")
+  .onCreate(async (snap) => {
+    const reg = snap.data();
+    const NOTIFY_URL = "YOUR_ADMIN_NOTIFICATION_WEBHOOK_URL";
+    try {
+      await fetch(NOTIFY_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          category: reg.categoryLabel || reg.category,
+          slot: reg.slotLabel || reg.slot || "",
+          teamName: reg.teamName,
+          mobileNumber: reg.mobileNumber,
+          entryFee: reg.entryFee,
+          paymentStatus: reg.paymentStatus,
+          paymentId: reg.paymentId,
+          timestamp: new Date().toISOString(),
+        }),
+      });
+    } catch (err) {
+      console.error("Admin notification failed (non-fatal):", err);
+    }
+  });
