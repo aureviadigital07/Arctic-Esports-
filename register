@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Complete Registration — Arctic Esports</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { ink:'#0A0A0F', frost:'#F5F7FA', steel:'#94A3B8', bolt:'#2563EB', cyan:'#22D3EE' },
+    fontFamily: { display:['Rajdhani','sans-serif'], body:['Inter','sans-serif'] },
+  } } };
+</script>
+<style>
+  body { font-family:'Inter', sans-serif; }
+  .font-display { font-family:'Rajdhani', sans-serif; }
+  .glow-blue:hover { box-shadow: 0 0 20px rgba(37,99,235,.5); }
+  .spinner { border: 3px solid rgba(255,255,255,.4); border-top-color:#fff; border-radius:50%; width:18px; height:18px; animation: spin .7s linear infinite; display:inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body class="bg-frost text-ink min-h-screen">
+
+<header class="bg-black h-[70px] flex items-center sticky top-0 z-30">
+  <div class="max-w-md mx-auto w-full px-4 flex items-center">
+    <span class="text-white font-display font-bold text-lg">ARCTIC <span class="text-cyan">ESPORTS</span></span>
+  </div>
+</header>
+
+<section class="max-w-md mx-auto px-4 py-10">
+  <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm rounded-lg px-4 py-3 mb-6 text-center">
+    ✅ Payment verified — just a few details to lock in your slot.
+  </div>
+
+  <form id="regForm" class="bg-white rounded-2xl shadow-sm p-6 space-y-5">
+    <div id="formError" class="hidden text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3"></div>
+    <div>
+      <label class="text-xs font-display tracking-wide text-steel">TEAM NAME</label>
+      <input name="teamName" required minlength="3" maxlength="40" placeholder="e.g. Arctic Wolves"
+        class="mt-1 w-full border border-slate-200 focus:border-bolt outline-none rounded-lg px-4 py-3" />
+    </div>
+    <div>
+      <label class="text-xs font-display tracking-wide text-steel">MOBILE NUMBER</label>
+      <input name="mobileNumber" required pattern="[0-9]{10}" maxlength="10" inputmode="numeric" placeholder="10-digit mobile number"
+        class="mt-1 w-full border border-slate-200 focus:border-bolt outline-none rounded-lg px-4 py-3" />
+    </div>
+    <button type="submit" id="submitBtn" class="glow-blue w-full bg-bolt text-white font-display font-bold py-3 rounded-lg transition-shadow flex items-center justify-center gap-2">
+      <span id="submitLabel">Complete Registration</span>
+    </button>
+  </form>
+</section>
+
+<script type="module">
+  import { doc, setDoc, serverTimestamp, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { db } from "../src/firebase/firebase-config.js";
+  import { watchAuthState } from "../src/firebase/auth-service.js";
+
+  const params = new URLSearchParams(window.location.search);
+  const category = params.get('category') || '';
+  const categoryLabel = params.get('categoryLabel') || category;
+  const slot = params.get('slot') || '';
+  const slotLabel = params.get('slotLabel') || '';
+  const fee = Number(params.get('fee') || 0);
+  const paymentId = params.get('paymentId') || '';
+
+  // Route protection + duplicate-submission guard: no verified paymentId,
+  // no access to this form at all.
+  if (!paymentId) window.location.href = 'index.html';
+
+  let currentUser = null;
+  watchAuthState((user) => {
+    if (!user) { window.location.href = 'login.html'; return; }
+    currentUser = user;
+  });
+
+  const form = document.getElementById('regForm');
+  const errorBox = document.getElementById('formError');
+  const submitBtn = document.getElementById('submitBtn');
+  const submitLabel = document.getElementById('submitLabel');
+  let submitting = false;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (submitting) return;
+    const fd = new FormData(form);
+    const teamName = (fd.get('teamName') || '').trim();
+    const mobileNumber = (fd.get('mobileNumber') || '').trim();
+
+    if (teamName.length < 3 || teamName.length > 40) {
+      return showError('Team name must be between 3 and 40 characters.');
+    }
+    if (!/^[0-9]{10}$/.test(mobileNumber)) {
+      return showError('Mobile number must be exactly 10 digits.');
+    }
+    errorBox.classList.add('hidden');
+    submitting = true;
+    submitBtn.disabled = true;
+    submitLabel.innerHTML = '<span class="spinner"></span>';
+
+    try {
+      const registrationId = `${paymentId}`; // Payment ID doubles as the dedupe key — one registration per verified payment, ever.
+      const groupLink = await fetchGroupLink(category);
+
+      await setDoc(doc(db, 'registrations', registrationId), {
+        registrationId,
+        uid: currentUser.uid,
+        category, categoryLabel,
+        slot, slotLabel,
+        entryFee: fee,
+        paymentStatus: 'Paid',
+        paymentId,
+        teamName, mobileNumber,
+        joinGroupLink: groupLink,
+        createdAt: serverTimestamp(),
+      }, { merge: false }); // merge:false — if this ID already exists, this throws instead of silently overwriting a prior registration for the same payment.
+
+      const receiptNumber = `AE-${Date.now().toString().slice(-8)}`;
+      await setDoc(doc(collection(db, 'orders')), {
+        registrationId, uid: currentUser.uid,
+        category, categoryLabel, slot, slotLabel,
+        amount: fee, paymentStatus: 'Paid', paymentId, receiptNumber,
+        createdAt: serverTimestamp(),
+      });
+
+      const success = new URLSearchParams({ category: categoryLabel, groupLink, receiptNumber });
+      window.location.href = `success.html?${success.toString()}`;
+    } catch (err) {
+      submitting = false;
+      submitBtn.disabled = false;
+      submitLabel.textContent = 'Complete Registration';
+      showError('This payment has already been used to register, or something went wrong. Check My Orders.');
+    }
+  });
+
+  function showError(msg) {
+    errorBox.textContent = msg;
+    errorBox.classList.remove('hidden');
+  }
+
+  // WhatsApp links are never hardcoded — always read from Firestore so the
+  // organizer can rotate them without touching code.
+  async function fetchGroupLink(category) {
+    try {
+      const { getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+      const docKey = { 'daily-grind': 'daily_grind', 'weekly-war': 'weekly_war', 'weekend-war': 'weekend_war', 'tournament': 'tournament' }[category] || 'daily_grind';
+      const snap = await getDoc(doc(db, 'whatsapp_links', docKey));
+      return snap.exists() ? snap.data().groupLink : 'YOUR_WHATSAPP_GROUP_LINK';
+    } catch {
+      return 'YOUR_WHATSAPP_GROUP_LINK';
+    }
+  }
+</script>
+</body>
+</html>
