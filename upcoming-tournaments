@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Upcoming Tournaments — Arctic Esports</title>
+<meta name="description" content="Register for upcoming BGMI tournaments hosted by Arctic Esports — prize pools, official brackets, full-squad play." />
+<link rel="canonical" href="https://arcticesports.example/upcoming-tournaments.html" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { ink:'#0A0A0F', frost:'#F5F7FA', steel:'#94A3B8', bolt:'#2563EB', cyan:'#22D3EE' },
+    fontFamily: { display:['Rajdhani','sans-serif'], body:['Inter','sans-serif'], mono:['"Space Mono"','monospace'] },
+  } } };
+</script>
+<style>
+  body { font-family:'Inter', sans-serif; }
+  .font-display { font-family:'Rajdhani', sans-serif; }
+  .glow-blue:hover { box-shadow: 0 0 20px rgba(37,99,235,.5); }
+  .hud-frame { position: relative; }
+  .hud-frame > .hud-tr, .hud-frame > .hud-bl {
+    position:absolute; width:16px; height:16px; opacity:0;
+    transition: opacity .25s ease, width .25s ease, height .25s ease;
+  }
+  .hud-frame > .hud-tr { top:8px; right:8px; border-top:2px solid #22D3EE; border-right:2px solid #22D3EE; }
+  .hud-frame > .hud-bl { bottom:8px; left:8px; border-bottom:2px solid #22D3EE; border-left:2px solid #22D3EE; }
+  .hud-frame:hover > .hud-tr, .hud-frame:hover > .hud-bl { opacity:1; width:22px; height:22px; }
+  .skeleton { background: linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 37%,#e2e8f0 63%); background-size:400% 100%; animation: sk 1.4s ease infinite; }
+  @keyframes sk { 0%{background-position:100% 50%} 100%{background-position:0 50%} }
+</style>
+</head>
+<body class="bg-frost text-ink">
+
+<header class="bg-black h-[70px] flex items-center sticky top-0 z-30">
+  <div class="max-w-6xl mx-auto w-full px-4 flex items-center justify-between">
+    <a href="index.html" class="text-white font-display font-bold text-lg">← ARCTIC <span class="text-cyan">ESPORTS</span></a>
+    <span class="text-steel text-sm font-display hidden sm:block">Upcoming Tournaments</span>
+  </div>
+</header>
+
+<section class="max-w-6xl mx-auto px-4 py-12">
+  <h1 class="font-display font-bold text-3xl text-center mb-10">Upcoming BGMI Tournaments</h1>
+  <div id="tournamentsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+</section>
+
+<script type="module">
+  import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { db } from "../src/firebase/firebase-config.js";
+
+  // Placeholder tournaments shown until the `tournaments` Firestore collection
+  // has real entries — organizer manages this list from the Admin Panel.
+  const DEFAULT_TOURNAMENTS = [
+    { id: 't1', title: 'Arctic Clash Cup', date: 'Aug 9, 2026', fee: 300, poster: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&q=80', description: 'Full-squad knockout bracket, 32 teams.' },
+    { id: 't2', title: 'Frostbite Invitational', date: 'Aug 16, 2026', fee: 400, poster: 'https://images.unsplash.com/photo-1560253023-3ec5d502959f?w=600&q=80', description: 'Points-based league across three maps.' },
+    { id: 't3', title: 'Glacier Grand Finals', date: 'Aug 23, 2026', fee: 500, poster: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&q=80', description: 'Top 16 teams, winner-take-most prize pool.' },
+    { id: 't4', title: 'North Star Series', date: 'Aug 30, 2026', fee: 250, poster: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=600&q=80', description: 'Beginner-friendly bracket for rising squads.' },
+    { id: 't5', title: 'Polar Championship', date: 'Sep 6, 2026', fee: 600, poster: 'https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=600&q=80', description: 'Flagship monthly championship, official casters.' },
+  ];
+
+  const grid = document.getElementById('tournamentsGrid');
+
+  function render(list) {
+    grid.innerHTML = list.map(t => `
+      <div class="hud-frame bg-white rounded-2xl shadow-sm border border-transparent hover:border-bolt transition-colors overflow-hidden flex flex-col">
+        <span class="hud-tr"></span><span class="hud-bl"></span>
+        <img src="${t.poster}" loading="lazy" alt="${t.title} poster" class="h-40 w-full object-cover" />
+        <div class="p-5 flex flex-col flex-1">
+          <h3 class="font-display font-bold text-lg">${t.title}</h3>
+          <p class="text-steel text-xs mt-1 font-mono">${t.date}</p>
+          <p class="text-steel text-sm mt-2 flex-1">${t.description}</p>
+          <p class="font-display font-semibold text-sm mt-3">Entry ₹${t.fee}</p>
+          <a href="tournament-registration.html?id=${t.id}&name=${encodeURIComponent(t.title)}&fee=${t.fee}&poster=${encodeURIComponent(t.poster)}"
+             class="glow-blue mt-4 text-center bg-bolt text-white font-display font-semibold py-2.5 rounded-lg transition-shadow">
+            Register Now
+          </a>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  grid.innerHTML = Array(3).fill(0).map(() => `<div class="skeleton rounded-2xl h-80"></div>`).join('');
+
+  (async () => {
+    try {
+      const snap = await getDocs(query(collection(db, 'tournaments'), orderBy('startDate')));
+      if (snap.empty) { render(DEFAULT_TOURNAMENTS); return; }
+      render(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    } catch (err) {
+      render(DEFAULT_TOURNAMENTS);
+    }
+  })();
+</script>
+</body>
+</html>
